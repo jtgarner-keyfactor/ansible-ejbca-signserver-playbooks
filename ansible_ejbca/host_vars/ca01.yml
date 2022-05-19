@@ -1,6 +1,6 @@
 ---
 
-hostname: ejbca01.solitude.skyrim
+hostname: ejbca01.garner.pki
 
 # Dirty hack to tell the type of instance till something better is used
 #ejbca_type: CA
@@ -26,7 +26,7 @@ httpd_identity_info:
 
 # Super Admin accounts to create
 management_add_end_entities:
-  - username: "SkyrimSuperAdministrator"
+  - username: "GarnerSuperAdministrator"
     dn: "C={{ countryName }},O={{ organizationName }},OU=Administrators,CN={{ superAdminCn }}"
     caname: "ManagementCA"
     token: "P12"

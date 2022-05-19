@@ -29,10 +29,11 @@ mariadb_users:
     priv: "signsrv.*:ALL"
     host: "localhost"
 
-signsrv_software_url: http://172.16.170.133:8080/ejbca/signserver-ee-5.7.0.Final-bin.zip
-signsrv_version: "5.7.0"
+# signsrv_software_url: http://172.16.170.133:8080/ejbca/signserver-ee-5.7.0.Final-bin.zip
+signsrv_software_url: /opt/signserver-ee-5.8.2.Final-bin.zip
+signsrv_version: "5.8.2"
 signsrv_filename: "signserver-ee-"
-signsrv_src_dir_name: signserver-ee-5.7.0.Final
+signsrv_src_dir_name: signserver-ee-5.8.2.Final
 # Maria DB JDBC driver download URL
 ejbca_jdbc_driver: https://dlm.mariadb.com/1785291/Connectors/java/connector-java-2.7.4/mariadb-java-client-2.7.4.jar
 # Maria DB JDBC driver SHA256 hash
@@ -60,8 +61,8 @@ appsrv_datasources:
 
 signsrv_admins:
   - name: "Super Admin"
-    serial: 0CDE905DDF8D1B36F42CB9AD5C723E01BFAF399D
-    issuerdn: "CN=ManagementCA, OU=Certification Authorities, O={{ organizationName }}, C={{ countryName }}"
+    serial: 600556d840799716a4f4cb15b5980ac4d4ff9d31
+    issuerdn: "CN=ManagementCA, OU=Certification Authorities, O=PrimeKey, C={{ countryName }}"
 
 peering_enable: true
 peer_ca_cert_serial_numbers: "{{ lookup('file', '~/ansible/ansibleCacheDir/peer_cert_serial_numbers.yml' ) | from_yaml }}"
@@ -93,7 +94,7 @@ hsm_shared_library: /usr/lib64/libsofthsm2.so
 p11_crypto_tokens:
   - id: 1
     name: CryptoTokenP11
-    SharedLibraryName: SoftHSM
+    SharedLibraryName: 
     SLOTLABELTYPE: SLOT_LABEL
     SLOTLABELVALUE: SignServer_SLOT
     testkey_alias: testkey0001

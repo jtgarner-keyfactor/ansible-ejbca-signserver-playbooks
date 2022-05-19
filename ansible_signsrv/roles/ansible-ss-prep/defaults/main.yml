@@ -21,9 +21,9 @@ signsrv_group: wildfly
 signsrv_user: wildfly
 signsrv_user_profile: "/home/{{ signsrv_user }}"
 
-ant_version: apache-ant-1.10.11-bin.tar.gz
+ant_version: apache-ant-1.10.12-bin.tar.gz
 ant_url: "https://mirror.olnevhost.net/pub/apache/ant/binaries/{{ ant_version }}"
-ant_checksum: sha256:0a3dc4624c863657daa609051763f12bfd286bc6da1d61ca48959ce3b94be0e7
+ant_checksum: sha256:4b3b557279bae4fb80210a5679180fdae3498b44cfd13368e3386e2a21dd853b
 
 # SignServer property files
 signsrv_templated_properties_files:

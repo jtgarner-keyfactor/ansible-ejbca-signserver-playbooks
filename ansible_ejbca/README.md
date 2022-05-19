@@ -1,5 +1,8 @@
 # ansible_ejbca
+<<<<<<< HEAD:ansible_ejbca/README.md
 [![Discuss](https://img.shields.io/badge/discuss-ejbca-ce?style=flat)](https://github.com/Keyfactor/ejbca-ce/discussions) 
+=======
+>>>>>>> jtgarner:ansible_ejbca_ee/README.md
 
 An Ansible playbook that installs EJBCA CA, external RA, & external VA with the enterprise edition, or deploy a simple PKI with the community edition. The enterprise version can also be configured as a standalone CA without deploying external RA/VA.
 
@@ -24,6 +27,7 @@ This is a self contained playbook.  All the roles in this playbook are needed to
 Some software is downloaded when running this playbook. It is your responsibility to ensure that the files downloaded are the correct ones, and that integrity is protected. It is recommended to use an internal repository, with approved files, in your organization if security is of a concern.
 
 ### Role Variables
+<<<<<<< HEAD:ansible_ejbca/README.md
 There are numerous variables for this playbook. These variables are set in `group_vars` and the `host_vars`. Reference the vars files for the settings used to deploy.
 
 
@@ -33,63 +37,111 @@ Below you find the steps to do some common tasks.
 ### Deploy Community version
 1. Edit _group_vars/ceServers.yml_, _host_vars/ce01.yaml_, and _inventory_.
 2. Run:
+=======
+There are numerous variables for this playbook. These variables are set in `deployment_info/internal_XX_vars.yml`. Reference the deployment_info vars files for the settings used to deploy.
+
+
+## Quick Start
+
+CE - Edit _group_vars/ceServers.yml_, _host_vars/ce01.yaml_, and the _inventory_ and run:
+>>>>>>> jtgarner:ansible_ejbca_ee/README.md
 
 ```bash
 ansible-playbook -i inventory -l ceServers,ce01 deployCeNode.yml --ask-become-pass
 ```
 
+<<<<<<< HEAD:ansible_ejbca/README.md
 ### Deploy an Enterprise CA
 1. Edit _group_vars/eeCaServers.yml_, _host_vars/ca01.yaml_, and _inventory_.
 2. Run:
+=======
+CA - Edit _group_vars/eeCaServers.yml_, _host_vars/ca01.yaml_, and the _inventory_ and run:
+>>>>>>> jtgarner:ansible_ejbca_ee/README.md
 
 ```bash
 ansible-playbook -i inventory -l eeCaServers,ca01 deployCA.yml --ask-become-pass
 ```
 
+<<<<<<< HEAD:ansible_ejbca/README.md
 ### Deploy an external RA
 1. Edit _group_vars/eeRaServers.yml_, _group_vars/pkiTlsCerts.yml_, _host_vars/ra01.yaml_, and _inventory_.
 2. Run:
+=======
+External RA - Edit _group_vars/eeRaServers.yml_, _group_vars/pkiTlsCerts.yml_, _host_vars/ra01.yaml_, and _inventory_ and run:
+>>>>>>> jtgarner:ansible_ejbca_ee/README.md
 
 ```bash
 ansible-playbook -i inventory -l eeRaServers,ra01,pkiTlsCerts deployRa.yml --ask-become-pass
 ```
+<<<<<<< HEAD:ansible_ejbca/README.md
 ### Deploy an external VA
 1. Edit _group_vars/eeVaServers.yml_, _group_vars/pkiTlsCerts.yml_, _group_vars/pkiCsrCerts.yml_, _host_vars/va01.yaml_, and _inventory_.
 2. Run:
+=======
+
+External VA - Edit _group_vars/eeVaServers.yml_, _group_vars/pkiTlsCerts.yml_, _group_vars/pkiCsrCerts.yml_, _host_vars/va01.yaml_, and _inventory_ and run:
+>>>>>>> jtgarner:ansible_ejbca_ee/README.md
 
 ```bash
 ansible-playbook -i inventory -l eeVaServers,va01,pkiTlsCerts,pkiCsrCerts deployVa.yml --ask-become-pass
 ```
 
+<<<<<<< HEAD:ansible_ejbca/README.md
 ### Switch the Datasource
 To use the Database source failover/failback use the following commands:
 
 #### Failover 
+=======
+### Switching the Datasource
+---
+To use the Database source failover/failback use the following commands:
+
+#### Failover 
+---
+>>>>>>> jtgarner:ansible_ejbca_ee/README.md
 ```bash
 ansible-playbook -i inventory -e failover_wildfly_db=true configureDB.yml
 ```
 
 #### Failback
+<<<<<<< HEAD:ansible_ejbca/README.md
+=======
+---
+>>>>>>> jtgarner:ansible_ejbca_ee/README.md
 ```bash
 ansible-playbook -i inventory -e failback_wildfly_db=true configureDB.yml 
 ```
 
+<<<<<<< HEAD:ansible_ejbca/README.md
 ### Use Ansible Vault
 
 Create a password file protected with Ansible Vault:
+=======
+### Using Ansible Vault
+
+Create a password file protected with Ansible Vault
+>>>>>>> jtgarner:ansible_ejbca_ee/README.md
 
 ```bash
 touch passwords/custom_enc_ca_vars.yml
 ansible-vault create passwords/custom_enc_ca_vars.yml
 ```
 
+<<<<<<< HEAD:ansible_ejbca/README.md
 Edit the password file to add/remove variables:
+=======
+Edit the password file to add/remove variables
+>>>>>>> jtgarner:ansible_ejbca_ee/README.md
 
 ```bash
 ansible-vault edit passwords/custom_enc_ca_vars.yml
 ```
 
+<<<<<<< HEAD:ansible_ejbca/README.md
 Use the Ansible Vault password file:
+=======
+Use the Ansible Vault password file
+>>>>>>> jtgarner:ansible_ejbca_ee/README.md
 
 ```bash
 ansible-playbook --ask-vault-pass -i inventory -e @passwords/custom_enc_ca_vars.yml deployCa.yml
@@ -154,8 +206,19 @@ Configures peering between EJBCA and RA/VA. This role is not usable and requires
 ### deployPostCaConfig.yml
 Handles post configuration tasks (Key bindings, peering, publishers, etc).
 
+<<<<<<< HEAD:ansible_ejbca/README.md
 ### Documentation 
 Also see a [full documentation of EJBCA](https://doc.primekey.com/ejbca) on how to further configure/manage EJBCA.
+=======
+
+
+
+Also see a [full documentation of EJBCA](https://doc.primekey.com/doc) on how to further configure/manage EJBCA.
+
+## Role Variables
+
+There are numerous variables for this playbook. These variables are set in `group_vars` and the `host_vars`. Reference the vars files for the settings used to deploy.
+>>>>>>> jtgarner:ansible_ejbca_ee/README.md
 
 
 ## Compatibility
