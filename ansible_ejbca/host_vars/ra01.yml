@@ -1,6 +1,6 @@
 ---
 
-hostname: ejbcara01.solitude.skyrim
+hostname: ra01.garner.pki
 
 # Dirty hack to tell the type of instance till something better is used
 #ejbca_type: RA

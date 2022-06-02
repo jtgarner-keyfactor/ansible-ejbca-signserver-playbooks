@@ -70,7 +70,7 @@ ejbca_crl_dir_enabled: false
 web_httpserver_external_privhttps: 443
 web_reqcertindb: false
 
-ant_version: apache-ant-1.10.9-bin.tar.gz
+ant_version: apache-ant-1.10.12-bin.tar.gz
 ant_url: "https://mirror.olnevhost.net/pub/apache/ant/binaries/{{ ant_version }}"
 
 # EJBCA VA property files

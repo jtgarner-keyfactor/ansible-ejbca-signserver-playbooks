@@ -4,7 +4,7 @@
 - name: Create End Entities batch style 
   include_tasks: batch_cert_request.yml
   loop: "{{ identity_info }}"
-  no_log: true
+  no_log: "{{ no_log_value }}"
   when: identity_info[0] is defined
 
 - name: Download CA Certs for Trustchain file

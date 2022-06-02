@@ -1,0 +1,63 @@
+Object Type: End Entity Profile
+Version: 1
+Name: tlsDevice
+Max Failed Logins Modifiable: false
+Description: ''
+Default CA: Dev-Fiscal-Service-Device-CA-G1
+Available CAs:
+- Dev-Fiscal-Service-Device-CA-G1
+Default Certificate Profile: tlsDeviceVA
+Available Certificate Profiles:
+- tlsDeviceVA
+- tlsDevice
+Default Token Type: User Generated
+Available Token Types:
+- User Generated
+- PKCS12 File
+- JKS File
+- PEM File
+Issuance Revocation Reason Modifiable: false
+CA Browser Forum Organization Identifier Modifiable: false
+Subject DN:
+  CN:
+  - Required: true
+  OU:
+  - Required: true
+    Modifiable: false
+    Values:
+    - Devices
+  OU:
+  - Required: true
+    Modifiable: false
+    Values:
+    - OLT PKI
+  OU:
+  - Required: true
+    Modifiable: false
+    Values:
+    - Fiscal Service
+  OU:
+  - Required: true
+    Modifiable: false
+    Values:
+    - Department of the Treasury
+  O:
+  - Required: true
+    Modifiable: false
+    Values:
+    - {{ organizationName }}
+  C:
+  - Required: true
+    Modifiable: false
+    Values:
+    - {{ countryName }}
+Subject Alternative Name:
+  DNSNAME:
+  - Required: false
+  - Required: false
+  - Required: false
+  - Required: false
+  IPADDRESS:
+  - Required: false
+  - Required: false
+  - Required: false

@@ -1,0 +1,139 @@
+---
+
+hostname: pki-dv-oltva-p01.fiscal.treasury.gov
+# Dirty hack to tell the type of instance till something better is used
+#ejbca_type: VA
+
+# Dirty mapping of httpd cert file name till something better is used 
+httpd_identity_info:
+  id_name: "pki-dv-oltva-p01.{{ organizationDomainName }}"
+  id_ca_cert_file: "{{ organizationNameShort }}-Sub-CA.crt"
+
+# List of OCSP Signers to create on the External VA
+ejbca_va_keybinding:
+  - name: ocspRootSigningKey
+    crypto_token_name: ocspCryptoToken
+    crypto_token:
+      - key_label: ocspRootSigningKey
+        key_size: "4096"
+        key_type: "RSA"
+        type: ocsp_keybind
+    signature_algorithm: SHA256WithRSA
+    dn: "C={{ countryName }},O={{ organizationName }},OU=OCSP Signers,CN=OCSP Root CA"
+    caname: "Dev-Fiscal-Service-Root-CA-G1"
+    token: USERGENERATED
+    certprofile: ocspSigner
+    eeprofile: ocspSigner
+  - name: ocspSubDeviceSigningKey
+    crypto_token_name: ocspCryptoToken
+    crypto_token:
+      - key_label: ocspSubDeviceSigningKey
+        key_size: "3072"
+        key_type: "RSA"
+        type: ocsp_keybind
+    signature_algorithm: SHA256WithRSA
+    dn: "C={{ countryName }},O={{ organizationName }},OU=OCSP Signers,CN=OCSP Device CA"
+    caname: "Dev-Fiscal-Service-Device-CA-G1"
+    token: USERGENERATED
+    certprofile: ocspSigner
+    eeprofile: ocspSigner
+  - name: ocspSubCodeSigningKey
+    crypto_token_name: ocspCryptoToken
+    crypto_token:
+      - key_label: ocspSubCodeSigningKey
+        key_size: "4096"
+        key_type: "RSA"
+        type: ocsp_keybind
+    signature_algorithm: SHA256WithRSA
+    dn: "C={{ countryName }},O={{ organizationName }},OU=OCSP Signers,CN=OCSP People CA"
+    caname: "Dev-Fiscal-Service-User-CA-G1"
+    token: USERGENERATED
+    certprofile: ocspSigner
+    eeprofile: ocspSigner
+  - name: ocspSubPeopleSigningKey
+    crypto_token_name: ocspCryptoToken
+    crypto_token:
+      - key_label: ocspSubPeopleSigningKey
+        key_size: "4096"
+        key_type: "RSA"
+        type: ocsp_keybind
+    signature_algorithm: SHA256WithRSA
+    dn: "C={{ countryName }},O={{ organizationName }},OU=OCSP Signers,CN=OCSP Code CA"
+    caname: "Dev-Fiscal-Service-Code-Signing-CA-G1"
+    token: USERGENERATED
+    certprofile: ocspSigner
+    eeprofile: ocspSigner
+
+  # - name: ocspMgmtSigningKey
+  #   crypto_token_name: ocspCryptoToken
+  #   crypto_token:
+  #     - key_label: ocspMgmtSigningKey0001
+  #       key_size: "3072"
+  #       key_type: "RSA"
+  #       type: ocsp_keybind
+  #   signature_algorithm: SHA256WithRSA
+  #   dn: "C={{ countryName }},O={{ organizationName }},OU=OCSP Signers,CN=OCSP Mgmt Signer"
+  #   caname: "ManagementCA" 
+  #   token: USERGENERATED
+  #   certprofile: ocspSigner
+  #   eeprofile: ocspSigner
+
+#ejbca_va_keybinding:
+#  - name: ocspSubSigningKey
+#    crypto_token_name: ocspCryptoToken
+#    tokentype: Pkcs11NgCryptoToken
+#    tokenpass: "{{ encrypted_ocsp_token_pin | default('foo123') }}"
+#    cryptotoken_enable_auto_activate: true
+#    slot_identifier_type: "SLOT_LABEL"
+#    slot_identifier_value: OCSP_KeyBinding_SLOT
+#    force_used_slots: true
+#    crypto_token:
+#      - key_label: ocspSubSigningKey0001
+#        key_size: "3072"
+#        key_type: "RSA"
+#        type: ocsp_keybind
+#    signature_algorithm: SHA256WithRSA
+#    dn: "C={{ countryName }},O={{ organizationName }},OU=OCSP Signers,CN=OCSP Sub Signer"
+#    caname: "{{ organizationNameShort }}-Sub-CA"
+#    token: USERGENERATED
+#    certprofile: ocspSigner
+#    eeprofile: ocspSigner
+#  - name: ocspRootSigningKey
+#    crypto_token_name: ocspCryptoToken
+#    tokentype: Pkcs11NgCryptoToken
+#    tokenpass: "{{ encrypted_ocsp_token_pin | default('foo123') }}"
+#    cryptotoken_enable_auto_activate: true
+#    slot_identifier_type: "SLOT_LABEL"
+#    slot_identifier_value: OCSP_KeyBinding_SLOT
+#    force_used_slots: true
+#    crypto_token:
+#      - key_label: ocspRootSigningKey0001
+#        key_size: "4096"
+#        key_type: "RSA"
+#        type: ocsp_keybind
+#    signature_algorithm: SHA256WithRSA
+#    dn: "C={{ countryName }},O={{ organizationName }},OU=OCSP Signers,CN=OCSP Root Signer"
+#    caname: "{{ organizationNameShort }}-Root-CA"
+#    token: USERGENERATED
+#    certprofile: ocspSigner
+#    eeprofile: ocspSigner
+#  - name: ocspMgmtSigningKey
+#    crypto_token_name: ocspCryptoToken
+#    tokentype: Pkcs11NgCryptoToken
+#    tokenpass: "{{ encrypted_ocsp_token_pin | default('foo123') }}"
+#    cryptotoken_enable_auto_activate: true
+#    slot_identifier_type: "SLOT_LABEL"
+#    slot_identifier_value: OCSP_KeyBinding_SLOT
+#    force_used_slots: true
+#    crypto_token:
+#      - key_label: ocspMgmtSigningKey0001
+#        key_size: "3072"
+#        key_type: "RSA"
+#        type: ocsp_keybind
+#    signature_algorithm: SHA256WithRSA
+#    dn: "C={{ countryName }},O={{ organizationName }},OU=OCSP Signers,CN=OCSP Mgmt Signer"
+#    caname: "ManagementCA" 
+#    token: USERGENERATED
+#    certprofile: ocspSigner
+#    eeprofile: ocspSigner  
+

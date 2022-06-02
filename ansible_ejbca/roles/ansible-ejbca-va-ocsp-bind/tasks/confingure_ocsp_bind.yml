@@ -10,7 +10,7 @@
   loop_control:
     label: "{{ item.name }}.crt"
   register: file_copy
-  no_log: true
+  no_log: "{{ no_log_value }}"
 
 - name: Import certificate file to OCSP key binding
   command: >
@@ -21,7 +21,7 @@
   become_user: "{{ ejbca_user }}"
   register: keybinding_import
   loop: "{{ ejbca_va_keybinding }}"
-  no_log: true
+  no_log: "{{ no_log_value }}"
 
 - name: Activate OCSP key binding
   command: >
@@ -32,12 +32,12 @@
   become_user: "{{ ejbca_user }}"
   register: keybinding_setstatus
   loop: "{{ ejbca_va_keybinding }}"
-  no_log: true
+  no_log: "{{ no_log_value }}"
 
 #TODO - Figure out why this can't be set via CLI, but works by setting in the UI
 #- name: Set Next Key Pair Alias 
 #  command: "{{ ejbca_sh }} keybind modify --name {{ item.name }} --nextkeypair {{ item.key_label }}"
-#  no_log: true
+#  no_log: "{{ no_log_value }}"
 #  become: yes
 #  become_user: "{{ ejbca_user }}"
 #  register: keybinding_modify

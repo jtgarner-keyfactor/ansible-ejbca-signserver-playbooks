@@ -1,11 +1,11 @@
 ---
 
-organizationName: Solitude
+organizationName: Treasury
 organizationNameShort: "{{ organizationName }}"
 organizationNameCRL: "{{ organizationName }}"
-organizationDomainName: solitude.skyrim
+organizationDomainName: fiscal.treasury.gov
 countryName: US
-superAdminCn: "1Feb2022-Skyrim-SA"
+superAdminCn: "5-20-GarnerSA"
 sharedVarsLocation: ~/ansible/ansibleCacheDir
 
 # Deployment locations for all the servers
@@ -43,9 +43,11 @@ ejbca_crl_dir:
 # caname: Name of the CA in EJBCA
 # fullchain: Must be set to true for this to work by getting the issuing CA chain and then adding that chain to the file
 httpd_trusted_cas:
-  - caname: "ManagementCA"
+  # - caname: "ManagementCA"
+  #   fullchain: true
+  - caname: "Dev-Fiscal-Service-Device-CA-G1"
     fullchain: true
-  - caname: "{{ organizationNameShort }}-Sub-CA"
+  - caname: "Dev-Fiscal-Service-User-CA-G1"
     fullchain: true
 
 # List of CA's to export the CA cert from EJBCA CA nodes and import as an external CA into external RA/VA nodes.
@@ -54,10 +56,14 @@ httpd_trusted_cas:
 # The superadmincn can be added to each CA to add a Common Name to the superadmin role.
 # fullchain: Must be set to false for this to work by getting each CA certificate to import as an external CA
 ejbca_ca_import:
-  - caname: "ManagementCA"
-    superadmincn: "{{ superAdminCn }}"
+  - caname: "Dev-Fiscal-Service-Root-CA-G1"
     fullchain: false
-  - caname: "{{ organizationNameShort }}-Sub-CA"
+  - caname: "Dev-Fiscal-Service-Device-CA-G1"
     fullchain: false
-  - caname: "{{ organizationNameShort }}-Root-CA"
+  - caname: "Dev-Fiscal-Service-User-CA-G1"
     fullchain: false
+  - caname: "Dev-Fiscal-Service-Code-Signing-CA-G1"
+    fullchain: false
+
+# Logging
+no_log_value: false

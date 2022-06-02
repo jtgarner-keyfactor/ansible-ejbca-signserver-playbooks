@@ -56,7 +56,7 @@ ejbca_crl_dir:
   - /opt/web/CRLs
   - /opt/web/AIA
 
-ant_version: apache-ant-1.10.11-bin.tar.gz
+ant_version: apache-ant-1.10.12-bin.tar.gz
 ant_url: "https://mirror.olnevhost.net/pub/apache/ant/binaries/{{ ant_version }}"
 
 wildfly_version: 24.0.1.Final

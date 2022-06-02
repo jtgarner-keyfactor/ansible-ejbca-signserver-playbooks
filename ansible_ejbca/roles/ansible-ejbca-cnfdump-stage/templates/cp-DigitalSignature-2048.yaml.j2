@@ -37,6 +37,7 @@ CVC Access Rights (Inspection System): [
 LDAP DN Order: false
 Available CAs:
 - Any CA 
+{#}
 {% if use_external_va is sameas true %}
 Publishers:
 {% if ejbca_peerConnector|length > 1 %}
@@ -47,6 +48,7 @@ Publishers:
 - validationAuthorityPeerPub-{{ item.name }}
 {% endif %}
 {% endif %}
+{#}
 {% if ejbca_version >= '7.6' %}
 Account Binding Namespace: [
   ]

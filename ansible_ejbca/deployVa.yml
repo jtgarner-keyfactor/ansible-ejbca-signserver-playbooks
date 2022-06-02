@@ -6,12 +6,12 @@
   become: yes
   become_method: sudo
   roles:
-    - ansible-hostname
-    - ansible-role-mariadb
-    - ansible-ejbca-wildfly
-    - ansible-ejbca-pkc11-client
-    - ansible-ejbca-prep
-    - ansible-ejbca-va-ee
+    # - ansible-hostname
+    # - ansible-role-mariadb
+    # - ansible-ejbca-wildfly
+    # - ansible-ejbca-pkc11-client
+    # - ansible-ejbca-prep
+    # - ansible-ejbca-va-ee
 
 - hosts: pkiTlsCerts
   become: yes

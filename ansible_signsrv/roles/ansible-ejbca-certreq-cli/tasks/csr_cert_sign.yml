@@ -25,7 +25,7 @@
     - name: Create fact
       set_fact:
         entity_pass: "{{ pass_15 }}"
-      no_log: true
+      no_log: "{{ no_log_value }}"
 
     - name: Add {% if csr_item.username is defined %}{{ csr_item.username }}{% else %}{{ sign_item.0.name }}{% endif %} end entity
       command: >
@@ -38,7 +38,7 @@
         --password {{ entity_pass }}
         --certprofile {% if csr_item.certprofile is defined %}"{{ csr_item.certprofile }}"{% else %}"{{ sign_item.0.certprofile }}"{% endif %} 
         --eeprofile {% if csr_item.eeprofile is defined %}"{{ csr_item.eeprofile }}"{% else %}"{{ sign_item.0.eeprofile }}"{% endif %} 
-      no_log: true
+      no_log: "{{ no_log_value }}"
       become_method: sudo
       become_user: "{{ ejbca_user }}"
       register: adding_csr_end_entity
@@ -57,7 +57,7 @@
         --password {{ entity_pass }} 
         -c {{ identity_batch_output_dir }}/{% if csr_item.username is defined %}{{ csr_item.name }}.csr{% else %}{{ sign_item.0.name }}.csr{% endif %} 
         -f /var/tmp/{% if csr_item.username is defined %}{{ csr_item.name }}.crt{% else %}{{ sign_item.0.name }}.crt{% endif %}
-      no_log: true
+      no_log: "{{ no_log_value }}"
       become: yes
       become_user: "{{ ejbca_user }}"
       register: ejbca_sign_csr
@@ -71,7 +71,7 @@
         --caname {% if csr_item.caname is defined %}"{{ csr_item.caname }}"{% else %}"{{ sign_item.0.caname }}"{% endif %}  
         -f {{ identity_batch_output_dir }}/{% if csr_item.username is defined %}{{ csr_item.name }}-fullchain.crt{% else %}{{ sign_item.0.name }}-fullchain.crt{% endif %} 
         --include-full-chain
-      no_log: true
+      no_log: "{{ no_log_value }}"
       become: yes
       become_user: "{{ ejbca_user }}"
       register: ejbca_sign_csr

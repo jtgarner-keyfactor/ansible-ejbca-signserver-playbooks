@@ -1,0 +1,3 @@
+- hosts: pkiServers
+  local_host: true
+
