@@ -10,10 +10,10 @@ all:
     # va01.garner.pki
     # ra01.garner.pki
   children:
-    eeRootCaServers:
-      hosts:
-        rt01:
-          ansible_host: 172.16.170.13
+    # eeRootCaServers:
+    #   hosts:
+    #     rt01:
+    #       ansible_host: 172.16.170.13
     eeCaServers:
       hosts:
         pki-dv-oltca-p01:
