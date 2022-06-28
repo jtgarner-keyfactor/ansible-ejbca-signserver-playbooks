@@ -1,0 +1,12 @@
+- caname: Garner-Root-CA 
+ with: WITH_COMMONNAME 
+ value: Test
+- caname: Garner-Root-CA 
+ with: WITH_COMMONNAME 
+ value: Test
+- caname: Garner-Root-CA 
+ with: WITH_COMMONNAME 
+ value: Test
+- caname: Garner-Root-CA 
+ with: WITH_COMMONNAME 
+ value: Test

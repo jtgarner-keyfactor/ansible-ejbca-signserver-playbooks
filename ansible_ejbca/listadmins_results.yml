@@ -1,0 +1,6 @@
+- caname: ManagementCA 
+ value: test1
+- caname: ManagementCA 
+ value: 5-20-GarnerSA
+- caname: 
+ value: ejbca

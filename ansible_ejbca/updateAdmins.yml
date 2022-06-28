@@ -1,0 +1,63 @@
+# ansible-playbook -i test_inventory -l ca01 updateAdmins.yml
+
+- hosts: pkiServers
+  become: yes
+  become_method: sudo
+  vars:
+    ejbca_role_name: "Super Administrator Role"
+    ejbca_role_name_list: "{{ management_add_administrators }}"
+
+  tasks:
+
+    - name: Get role members
+      shell: >
+        {{ ejbca_sh }}
+        roles listadmins --role '{{ ejbca_role_name }}'
+      register: listadmins_results
+
+    - name: Create fact for existing members
+      set_fact: 
+        list_existing_members: |
+          [
+          {% for line in listadmins_results.stdout_lines %}       
+          {{ '{' }} 'caname':'{{ line | regex_search("'([^']*)'") | regex_replace("'","") }}', 'with':'{{ line | regex_search('WITH_\w*') }}', 'value':{{ line | regex_search('"([^"]*)"') }} {{ '}' }},
+          {% endfor %}
+          ]
+
+    - name: Debug list_existing_members
+      debug:
+        msg: "This is caname: {{ item.caname }}, this is with: {{ item.with }}, this is type: {{ item.value }}"
+      loop: "{{ list_existing_members }}"
+      loop_control:
+        label: "{{ item.caname }}"
+        
+    - name: Remove administrators not in Administrator list
+      command: >
+        {{ ejbca_sh }} roles removeadmin
+        --role "{{ ejbca_role_name }}"
+        --caname "{{ item.caname }}"
+        --with "{{ item.with }}"
+        --value "{{ item.value }}"
+      become: yes
+      become_user: "{{ ejbca_user }}"
+      loop: "{{ list_existing_members }}"
+      loop_control:
+        label: "{{ item.value }}"
+      register: remove_admin_from_role_result
+      failed_when: remove_admin_from_role_result.rc == 2
+
+    - name: Add role members to the "{{ ejbca_role_name }}"
+      command: >
+        "{{ ejbca_sh }}" roles addrolemember
+        --role "{{ ejbca_role_name }}"
+        --caname "{{ item.caname }}"
+        --with "{{ item.match_with }}"
+        --value "{{ item.match_value }}"
+      become: yes
+      become_user: "{{ ejbca_user }}"
+      register: adding_rolemember
+      loop: "{{ management_add_administrators }}"
+      loop_control:
+        label: "{{ item.match_value }}"
+      failed_when: (adding_rolemember.rc >= 2) or ("No such CA '" + item.caname + "'." in adding_rolemember.stdout)
+      changed_when: adding_rolemember.rc == 0
