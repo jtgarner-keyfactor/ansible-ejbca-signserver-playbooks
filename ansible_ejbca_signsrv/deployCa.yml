@@ -6,15 +6,11 @@
   become: yes
   become_method: sudo
   roles:
-    # - ansible-hostname
-    # - ansible-role-mariadb
-    # - ansible-ejbca-wildfly
-    # - ansible-ejbca-pkc11-client
+    - ansible-hostname
+    - ansible-role-mariadb
+    - ansible-ejbca-wildfly
+    - ansible-ejbca-pkc11-client
     - ansible-ejbca-prep
     - ansible-ejbca-deploy-pki-sample
     - ansible-ejbca-crl-import-export
-<<<<<<< HEAD:ansible_ejbca/deployCa.yml
-    - ansible-ejbca-httpd
-=======
     - ansible-pki-ss-httpd
->>>>>>> master:ansible_ejbca_signsrv/deployCa.yml

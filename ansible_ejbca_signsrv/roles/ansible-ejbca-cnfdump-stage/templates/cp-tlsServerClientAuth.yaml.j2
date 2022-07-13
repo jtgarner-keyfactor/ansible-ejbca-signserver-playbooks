@@ -1,6 +1,6 @@
 Object Type: Certificate Profile
 Version: 1
-Name: tlsDevice
+Name: tlsServerClientAuth
 Type: End Entity
 Available Key Algorithms:
 - RSA
@@ -37,7 +37,7 @@ CVC Access Rights (Inspection System): [
 ]
 LDAP DN Order: false
 Available CAs:
-- Dev-Fiscal-Service-Device-CA-G1
+- Any CA
 {% if ejbca_version >= '7.6' %}
 Account Binding Namespace: [
   ]

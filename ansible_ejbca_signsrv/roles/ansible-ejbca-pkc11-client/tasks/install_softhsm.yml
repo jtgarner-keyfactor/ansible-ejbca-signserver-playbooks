@@ -88,31 +88,6 @@
     owner: "{{ ejbca_user }}"
     group: "{{ ejbca_group }}"
 
-<<<<<<< HEAD:ansible_ejbca/roles/ansible-ejbca-pkc11-client/tasks/install_softhsm.yml
-- name: Check SoftHSM Slots
-  shell: >
-    softhsm2-util --show-slots | grep {{ item.slot_name }}
-  register: show_hsm_slots
-  loop: "{{ softhsm_gen_hsm_slots }}"
-  changed_when: show_hsm_slots.rc != 0
-  failed_when: false
-  no_log: "{{ no_log_value }}"
-
-- name: Create SoftHSM slots
-  command: >
-    softhsm2-util 
-    --init-token 
-    --free 
-    --label {{ item.item.slot_name }} 
-    --so-pin {{ item.item.slot_so_pin }} 
-    --pin {{ item.item.slot_pin }}
-  become: yes  
-  become_user: "{{ ejbca_user }}" 
-  loop: "{{ show_hsm_slots.results }}"
-  no_log: "{{ no_log_value }}"
-  register: create_hsm_slots
-  when: item.changed
-=======
 - name: Create SoftHSM slots for a new deployment
   block:
 
@@ -143,4 +118,3 @@
 
   when:
     - create_softhsm_slots|bool
->>>>>>> master:ansible_ejbca_signsrv/roles/ansible-ejbca-pkc11-client/tasks/install_softhsm.yml

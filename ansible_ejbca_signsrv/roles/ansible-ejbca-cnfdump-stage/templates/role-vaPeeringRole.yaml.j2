@@ -19,7 +19,7 @@ Role Members:
 Namespace: ''
 RA Style Id: 0
 Access Rules:
-{% for item in ejbca_va_keybinding %}
+{% for item in ejbca_keybinding %}
   /ca/{{ item.caname }}/: Allow
   /internalkeybinding/modify/{{ item.name }}/: Allow
   /internalkeybinding/view/{{ item.name }}/: Allow

@@ -16,16 +16,6 @@
     # - ansible-ss-crypto-workers
 #     - ansible-ss-gen-keys
 
-<<<<<<< HEAD:ansible_signsrv/deploySS.yml
-# - hosts: ejbcaCaServers
-#   become: yes
-#   become_method: sudo
-#   gather_facts: false
-#   pre_tasks:
-#     - include_vars: deployment_info/internal_vars.yml
-#   roles:
-#     - ansible-ejbca-certreq-cli
-=======
 - hosts: ssTlsCerts
   become: yes
   become_method: sudo
@@ -39,16 +29,10 @@
   gather_facts: false
   roles:
     - ansible-ejbca-certreq-cli
->>>>>>> master:ansible_ejbca_signsrv/deploySS.yml
 
 - hosts: signServers:eeSignServers
   become: yes
   become_method: sudo
   roles:
-<<<<<<< HEAD:ansible_signsrv/deploySS.yml
-    # - ansible-ss-workers
-    - ansible-ss-httpd
-=======
     - ansible-ss-workers
     - ansible-pki-ss-httpd
->>>>>>> master:ansible_ejbca_signsrv/deploySS.yml
