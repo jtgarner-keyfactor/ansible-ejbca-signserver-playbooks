@@ -1,0 +1,65 @@
+---
+
+# ansible-playbook deployPKI.yml
+
+- hosts: pkiServers:eeRaServers:eeVaServers
+  become: yes
+  become_method: sudo
+  gather_facts: true
+  roles:
+
+    # Set hostname of remote server on all servers
+    - role: ansible-hostname
+
+    # Dowload, install, and configure MariaDB on all servers
+    - role: ansible-role-mariadb
+
+    # Download, install, and configure Wildfly on all servers
+    - role: ansible-ejbca-wildfly
+
+    # Configure the HSM client on all servers with key bindings defined in the host_var
+    - role: ansible-ejbca-pkc11-client
+      when: ejbca_keybinding[0] is defined
+    
+    # Configure and deploy EJBCA on all servers
+    - role: ansible-ejbca-prep
+
+    # Create crypto tokens, key, and generate CSRs for signing on RA and VA servers with key bindings defined in the host_var
+    - role: ansible-pki-peer-keybindings
+      when: 
+       - ejbca_keybinding[0] is defined
+       - inventory_hostname in groups['eeRaServers'] or
+         inventory_hostname in groups['eeVaServers']
+
+- hosts: pkiTlsCerts
+  become: yes
+  become_method: sudo
+  gather_facts: false
+  roles:
+    - role: ansible-ejbca-certreq-cli
+
+- hosts: pkiCsrCerts
+  become: yes
+  become_method: sudo
+  gather_facts: false
+  roles:
+    - role: ansible-ejbca-certreq-cli
+
+- hosts: eeRaServers:eeVaServers
+  become: yes
+  become_method: sudo
+  gather_facts: false
+  roles:
+
+    # Import CA certs to Peer Nodes
+    - role: ansible-ejbca-importcacrt
+
+    # Configure Httpd
+    - role: ansible-pki-ss-httpd
+
+    # Enebale peering and configure Peering roles
+    - role: ansible-ejbca-peer-in
+
+    # Enable Protocols on RA servers
+    - role: ansible-ejbca-enroll-protocols
+      when: inventory_hostname in groups['eeRaServers']

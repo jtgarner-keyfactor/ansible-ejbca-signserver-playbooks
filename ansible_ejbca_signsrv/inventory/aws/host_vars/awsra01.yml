@@ -1,0 +1,26 @@
+---
+
+hostname: awsra01.garner.pki
+
+# Dirty hack to tell the type of instance till something better is used
+#ejbca_type: RA
+
+# Dirty mapping of httpd cert file name till something better is used 
+httpd_identity_info:
+  id_name: "awsra01.{{ organizationDomainName }}"
+  id_ca_cert_file: "{{ organizationNameShort }}-Sub-CA.crt"
+
+ejbca_keybinding:
+  - name: LDAPS
+    crypto_token_name: LdapsCryptoToken
+    crypto_token:
+      - key_label: ldapskey
+        key_size: 2048
+        key_type: RSA
+        type: ldaps_keybind
+    signature_algorithm: SHA256WithRSA
+    dn: "C={{ countryName }},O={{ organizationName }},OU=LDAPS,CN=LDAPS"
+    caname: "{{ organizationNameShort }}-Sub-CA"
+    token: USERGENERATED
+    certprofile: tlsDevice
+    eeprofile: tlsServerDeploy

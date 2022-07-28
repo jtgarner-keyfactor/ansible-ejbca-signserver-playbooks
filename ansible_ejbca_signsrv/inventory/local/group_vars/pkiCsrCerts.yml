@@ -1,0 +1,8 @@
+---
+
+# If configuring remote key bindings, the info needed to sign the CSR is stored as a fact in that yaml file
+va_identity_csr_info: "{{ lookup('file', '~/ansible/ansibleCacheDir/va_delegated_signers.yml', errors='ignore' ) | from_yaml }}"
+
+## NEW FOR LDAPS KEYBDING ##
+ra_identity_csr_info: "{{ lookup('file', '~/ansible/ansibleCacheDir/ldaps_key_binding.yml', errors='ignore' ) | from_yaml }}"
+## NEW FOR LDAPS KEYBDING ##

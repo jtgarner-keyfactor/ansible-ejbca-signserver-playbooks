@@ -3,5 +3,5 @@
 - name: Install required SQL python packages
   include_tasks: install.yml
 
-- name: Configure RDS database
+- name: Configure Database
   include_tasks: configure.yml

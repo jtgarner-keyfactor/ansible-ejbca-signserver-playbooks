@@ -1,8 +1,4 @@
 # ansible_ejbca
-<<<<<<< HEAD:ansible_ejbca/README.md
-[![Discuss](https://img.shields.io/badge/discuss-ejbca-ce?style=flat)](https://github.com/Keyfactor/ejbca-ce/discussions) 
-=======
->>>>>>> jtgarner:ansible_ejbca_ee/README.md
 
 An Ansible playbook that installs EJBCA & SignServer Community or Enterprise. The community EJBCA playbook deploys an EJBCA node and configures the management CA and Super Admin to begin using EJBCA to build out your PKI. It is easy to use for deploying a simple PKI with the community edition. The Enterprise playbooks are available to deploy a CA, external RA, & external VA. The enterprise version can also be configured as a standalone CA without deploying external RA/VA.
 
@@ -30,51 +26,18 @@ This is a self contained playbook.  All the roles in this playbook are needed to
 Some software is downloaded when running this playbook (JDBC driver, Ant, Wildfly). It is your responsibility to ensure that the files downloaded are the correct ones, and that integrity is protected. It is recommended to use an internal repository, with approved files, in your organization if security is of a concern. 
 
 ### Role Variables
-<<<<<<< HEAD:ansible_ejbca/README.md
-There are numerous variables for this playbook. These variables are set in `group_vars` and the `host_vars`. Reference the vars files for the settings used to deploy.
-
-## Quick Start
-Below you will find the steps to run some common tasks. 
-
-### Deploy Community EJBCA version
-1. Edit _group_vars/ceServers.yml_, _host_vars/ce01.yml_, and _inventory_.
-2. Run:
-
-```bash
-ansible-playbook -i inventory -l ce01 deployCeNode.yml --ask-become-pass
-```
-
-### Deploy Community SignServer version
-1. Edit _group_vars/ceSignServers.yml_, _host_vars/cess01.yml_, and _inventory_.
-2. Run:
-
-```bash
-ansible-playbook -i inventory -l cess01,ssTlsCerts,ssCsrCerts deployCeSS.yml --ask-become-pass
-```
-
-### Deploy Enterprise SignServer version
-1. Edit _group_vars/eeSignServers.yml_, _host_vars/ss01.yml_, and _inventory_.
-2. Run:
-=======
 There are numerous variables for this playbook. These variables are set in `deployment_info/internal_XX_vars.yml`. Reference the deployment_info vars files for the settings used to deploy.
 
 
 ## Quick Start
 
 CE - Edit _group_vars/ceServers.yml_, _host_vars/ce01.yaml_, and the _inventory_ and run:
->>>>>>> jtgarner:ansible_ejbca_ee/README.md
 
 ```bash
 ansible-playbook -i inventory -l ss01,ssTlsCerts,ssCsrCerts deploySS.yml --ask-become-pass
 ```
 
-<<<<<<< HEAD:ansible_ejbca/README.md
-### Deploy an Enterprise CA
-1. Edit _group_vars/eeCaServers.yml_, _host_vars/ca01.yml_, and _inventory_.
-2. Run:
-=======
 CA - Edit _group_vars/eeCaServers.yml_, _host_vars/ca01.yaml_, and the _inventory_ and run:
->>>>>>> jtgarner:ansible_ejbca_ee/README.md
 
 ```bash
 ansible-playbook -i inventory -l ca01 deployCA.yml --ask-become-pass

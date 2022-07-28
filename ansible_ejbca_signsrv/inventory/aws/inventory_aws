@@ -1,0 +1,117 @@
+---
+
+all:
+  hosts:
+    awsca01.deploy.pki
+    awsva01.deploy.pki
+    awsva02.deploy.pki
+  children:
+    eeRootCaServers:
+      hosts:
+    initialCaServer:
+      hosts:
+        awsca01:
+          ansible_host: 34.204.72.168
+          ansible_user: ec2-user
+          ansible_ssh_private_key_file: ~/.ssh/c2-ssh.pem
+    eeCaServers:
+      hosts:
+        awsca01:
+          ansible_host: 34.204.72.168
+          ansible_user: ec2-user
+          ansible_ssh_private_key_file: ~/.ssh/c2-ssh.pem
+    peerconfigCas:
+      hosts:
+    eeSubCaServers:
+      hosts:
+    eeRaServers:
+      hosts:
+    eeVaServers:
+      hosts:
+        awsva01:
+          ansible_host: 54.221.155.179
+          ansible_user: ec2-user
+          ansible_ssh_private_key_file: ~/.ssh/c2-ssh.pem
+        awsva02:
+          ansible_host: 54.197.219.218
+          ansible_user: ec2-user
+          ansible_ssh_private_key_file: ~/.ssh/c2-ssh.pem
+    eeSignServers:
+      hosts: 
+    vaSigners:
+      hosts:
+    pkiTlsCerts:
+      hosts:
+        pkiTLSEnrollmentCa:
+          ansible_host: 34.204.72.168
+          ansible_user: ec2-user
+          ansible_ssh_private_key_file: ~/.ssh/c2-ssh.pem
+    pkiCsrCerts:
+      hosts:
+        pkiCsrEnrollmentCa:
+          ansible_host: 34.204.72.168
+          ansible_user: ec2-user
+          ansible_ssh_private_key_file: ~/.ssh/c2-ssh.pem
+    ssTlsCerts:
+      hosts:
+    ssCsrCerts:
+      hosts:
+    httpdServers:
+      children:
+        eeCaServers:
+        eeVaServers:
+        eeRaServers:
+        ceServers:
+        eeSignServers:
+        ceSignServers:
+        extSignMgmtCaServers:
+        peerconfigCas:
+        extEeRootCaServers:
+        eeSubCaServers: 
+    mariadbServers:
+      children:
+        eeRootCaServers:
+        eeCaServers:
+        eeVaServers:
+        eeRaServers:
+        ceServers:
+        eeSignServers:
+        ceSignServers:
+        extSignMgmtCaServers:
+        extEeRootCaServers:
+        eeSubCaServers:  
+    applicationServers:
+      children:
+        eeRootCaServers:
+        eeCaServers:
+        eeVaServers:
+        eeRaServers:
+        ceServers:
+        eeSignServers:
+        ceSignServers:
+        extSignMgmtCaServers:
+        extSignPolicyCas:
+        policyCaSignIssuingCas:
+        extEeRootCaServers:
+        eeSubCaServers:
+    upgradeEeServers:
+      children:
+        eeRootCaServers:
+        eeCaServers:
+        eeVaServers:
+        eeRaServers:
+        extEeRootCaServers:
+        eeSubCaServers:  
+    upgradeCeServers:
+      children:
+        ceServers:   
+    pkiServers:
+      children:
+        mariadbServers:
+        applicationServers:
+        httpdServers:
+    signServers:
+      children:
+        mariadbServers:
+        applicationServers:
+        httpdServers:

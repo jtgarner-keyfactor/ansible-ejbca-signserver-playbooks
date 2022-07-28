@@ -1,0 +1,39 @@
+---
+
+- hosts: localhost
+  become: no
+  become_method: sudo
+  gather_facts: false
+  tasks:
+
+    - name: Create directory on Ansible controller for REST credential temporary cache
+      file:
+        path: "{{ local_rest_dir }}"
+        state: directory
+
+    - name: Create certificate private key
+      openssl_privatekey:
+        path: "{{ local_rest_dir }}/{{ rest_private_key }}"
+        force: yes
+        cipher: auto
+        type: RSA
+        size: 2048
+
+    - name: Set rest_private_key_string fact 
+      set_fact: 
+        rest_private_key_string: "{{ lookup('file', '{{ local_rest_dir }}/{{ rest_private_key }}') }}"
+
+    - name: Store private key file inside encrypted variable
+      command: >
+        ansible-vault encrypt --ask-vault-pass "{{ rest_private_key_string }}"
+      register: enc_rest_key
+
+    - debug: |
+        msg=" Copy the following enc_rest_key variable into the All.yml group_var before starting running any Ansible plays.
+
+         {{ enc_rest_key }}"
+
+    - name: Delete private key file
+      file:
+        path: "{{ local_rest_dir }}/{{ rest_private_key }}"
+        state: absent

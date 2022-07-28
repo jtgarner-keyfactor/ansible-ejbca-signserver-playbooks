@@ -1,0 +1,31 @@
+---
+
+# Info to create HTTPD end entity in EJBCA for the TLS certificate.
+# The group_vars for pkiTlsCerts needs to be updated with the TLS cert info needed to create the TLS cert.
+# This is not dynamically created. 
+identity_info:
+  - dn: "C={{ countryName }},O={{ organizationName }},OU=Devices,cn=awsocsp01.{{ organizationDomainName }}"
+    name: "awsocsp01.{{ organizationDomainName }}"
+    #full_dn: "C={{ countryName }},O={{ organizationName }},OU=Devices,cn=awsra01.{{ organizationDomainName }}"
+    username: ra_httpd_tls
+    password: "{{ encrypted_httpd_identity_password | default('foo123') }}"
+    altname: "dNSName=awsocsp01.{{ organizationDomainName }}, dNSName=enroll.{{ organizationDomainName }}, dNSName=api.enroll.{{ organizationDomainName }}, dNSName=enrolls.{{ organizationDomainName }}"
+    certprofile: tlsServerClientAuth
+    eeprofile: tlsServerDeploy
+    caname: "{{ organizationNameShort }}-Sub-CA"
+    token: PEM
+    useType: ra
+  - dn: "C={{ countryName }},O={{ organizationName }},OU=Devices,CN=awsocsp02.{{ organizationDomainName }}"
+    name: "awsocsp02.{{ organizationDomainName }}"
+    #full_dn: "C={{ countryName }},O={{ organizationName }},OU=Devices,CN=awsocsp01.{{ organizationDomainName }}"
+    username: va_httpd_tls
+    password: "{{ encrypted_httpd_identity_password | default('foo123') }}"
+    altname: "dNSName=awsocsp02.{{ organizationDomainName }}"
+    certprofile: tlsServerClientAuth
+    eeprofile: tlsServerDeploy
+    caname: "{{ organizationNameShort }}-Sub-CA"
+    token: PEM
+    useType: va
+
+va_identity_csr_info: "{{ lookup('file', '~/ansible/ansibleCacheDir/va_delegated_signers.yml', errors='ignore' ) | from_yaml }}"
+ra_identity_csr_info: "{{ lookup('file', '~/ansible/ansibleCacheDir/ldaps_key_binding.yml', errors='ignore' ) | from_yaml }}"
