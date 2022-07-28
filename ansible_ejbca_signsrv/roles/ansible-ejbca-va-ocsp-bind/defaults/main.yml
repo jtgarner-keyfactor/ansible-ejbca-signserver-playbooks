@@ -16,7 +16,7 @@
 #identity_batch_output_dir: /var/tmp
 
 # Crypto Token & Key Binding for Peer Connections.  This will create 1 key to use for peering from the CA to VA or RA
-ejbca_va_keybinding:
+ejbca_keybinding:
   - name: ocspSubSigningKey
     slot_label: OCSP_KeyBinding_SLOT
     slot_identifier_type: "SLOT_LABEL"

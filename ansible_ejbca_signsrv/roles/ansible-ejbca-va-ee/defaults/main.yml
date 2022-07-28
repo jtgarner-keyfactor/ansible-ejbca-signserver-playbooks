@@ -28,14 +28,14 @@
 
 # List of HSM slots that should be tested that they are accessible
 ejbca_va_test_slots:
-  - slot_identifier: "{{ ejbca_va_keybinding[0].slot_identifier }}"
+  - slot_identifier: "{{ ejbca_keybinding[0].slot_identifier }}"
     slot_pin: "{{ encrypted_ocsp_token_pin | default('foo123') }}"
 
 # Database root user password. Should be encrypted with Ansible vault
 database_rootuser_password: "{{ encrypted_database_rootuser_password | default('root') }}"
 
 # Crypto Token & Key Binding for Peer Connections.  This will create 1 key to use for peering from the CA to VA or RA
-ejbca_va_keybinding:
+ejbca_keybinding:
   - name: ocspSubKeyBinding
     slot_label: OCSP_KeyBinding_SLOT
     slot_identifier_type: "SLOT_LABEL"

@@ -1,0 +1,151 @@
+---
+
+- name: Copy CSR to CA for certifcate Issuance
+  copy:
+    src: "{{ csr_path }}"
+    dest: "{{ identity_batch_output_dir }}"
+  delegate_to: "{{ groups['eeCaServers'][0] }}"
+
+- name: Check if {{ item.username }} end entity exists
+  delegate_to: "{{ groups['eeCaServers'][0] }}"
+  command: "{{ ejbca_sh }} ra findendentity {{ item.username }}"
+  args:
+    chdir: "{{ ejbca_home }}"
+  become: true
+  become_method: sudo
+  become_user: "{{ ejbca_user }}"
+  changed_when: false
+  failed_when: false
+  register: endentity_exists
+  tags: certreq-cli-batch
+
+- name: Add {{ item.username }} Entity to CA
+  block:
+
+  - name: Add Entity to CA
+    delegate_to: "{{ groups['eeCaServers'][0] }}"
+    command: >
+      {{ ejbca_sh }} ra addendentity 
+      --username '{{ item.username }}' 
+      --password '{{  item.password }}' 
+      --dn {% if item.full_dn is defined %}'{{ item.full_dn }}'{% elif item.dn is defined %}'{{ item.dn }}'{% else %}'{{ item.name }}'{% endif %}
+      {% if item.altname is defined %}--altname '{{ item.altname }}'{% endif %}
+      --caname '{{ item.caname }}' 
+      --type 1 
+      --token {{ item.token }} 
+      --certprofile '{{ item.certprofile }}' 
+      --eeprofile '{{ item.eeprofile }}'
+    args:
+      chdir: "{{ ejbca_home }}"
+    become_user: "{{ ejbca_user }}"
+    become: true
+    register: ra_addIdent_result
+    tags: certreq-cli-batch
+    no_log: "{{ no_log_value }}"
+    failed_when: ra_addIdent_result.rc >= 2
+    changed_when: ra_addIdent_result.rc == 0
+
+  - name: Set password for {{ item.username }}
+    delegate_to: "{{ groups['eeCaServers'][0] }}"
+    command: >
+      {{ ejbca_sh }} ra setclearpwd 
+      --username '{{ item.username }}' 
+      --password '{{ item.password }}'
+    args:
+      chdir: "{{ ejbca_home }}"
+    become_user: "{{ ejbca_user }}"
+    become: true
+    register: ra_setpwd_result
+    tags: certreq-cli-batch
+    no_log: "{{ no_log_value }}"
+    failed_when: ra_setpwd_result.rc >= 2
+    changed_when: ra_setpwd_result.rc == 0
+
+  - name: Sign CSR for {{ item.username }}
+    delegate_to: "{{ groups['eeCaServers'][0] }}"
+    command: >
+      {{ ejbca_sh }} createcert 
+      --username {{ item.username }}
+      --password {{ item.password }}
+      -c {{ identity_batch_output_dir }}/{{ rest_csr }}
+      -f /var/tmp/{{ rest_public_key }}
+    args:
+      chdir: "{{ ejbca_home }}"
+    become_user: "{{ ejbca_user }}"
+    become: true
+    register: sign_csr_result
+    failed_when: sign_csr_result.rc >= 2
+    changed_when: sign_csr_result.rc == 0
+
+  - name: Copy CSR back to localhost
+    delegate_to: "{{ groups['eeCaServers'][0] }}"
+    fetch:
+      src: "{{ identity_batch_output_dir }}/{{ rest_public_key }}"
+      dest: "{{ local_rest_dir }}/"
+      flat: yes
+
+  when: 
+    - "'does not exist' in endentity_exists.stdout"
+
+- name: Reset API Credentials
+  block:
+
+  - name: Set {{ item.username }} Entity to New
+    delegate_to: "{{ groups['eeCaServers'][0] }}"
+    command: >
+      {{ ejbca_sh }} ra setendentitystatus 
+      --username '{{ item.username }}' 
+      10
+    args:
+      chdir: "{{ ejbca_home }}"
+    become_user: "{{ ejbca_user }}"
+    become: true
+    register: ra_setIdent_result
+
+  - name: Set password for {{ item.username }}
+    delegate_to: "{{ groups['eeCaServers'][0] }}"
+    command: >
+      {{ ejbca_sh }} ra setclearpwd 
+      --username '{{ item.username }}' 
+      --password '{{ item.password }}'
+    args:
+      chdir: "{{ ejbca_home }}"
+    become_user: "{{ ejbca_user }}"
+    become: true
+    register: ra_setpwd_result
+    tags: certreq-cli-batch
+    no_log: "{{ no_log_value }}"
+    failed_when: ra_setpwd_result.rc >= 2
+    changed_when: ra_setpwd_result.rc == 0
+
+  - name: Sign CSR for {{ item.username }}
+    delegate_to: "{{ groups['eeCaServers'][0] }}"
+    command: >
+      {{ ejbca_sh }} createcert 
+      --username {{ item.username }}
+      --password {{ item.password }}
+      -c {{ identity_batch_output_dir }}/{{ rest_csr }}
+      -f /var/tmp/{{ rest_public_key }}
+    args:
+      chdir: "{{ ejbca_home }}"
+    become_user: "{{ ejbca_user }}"
+    become: true
+    register: sign_csr_result
+    failed_when: sign_csr_result.rc >= 2
+    changed_when: sign_csr_result.rc == 0
+
+  - name: Copy CSR back to localhost
+    delegate_to: "{{ groups['eeCaServers'][0] }}"
+    fetch:
+      src: "{{ identity_batch_output_dir }}/{{ rest_public_key }}"
+      dest: "{{ local_rest_dir }}/"
+      flat: yes
+
+  when:
+    - "'Found end entity' in endentity_exists.stdout"
+    - reset_rest_api_creds is defined and reset_rest_api_creds|bool
+
+
+
+
+

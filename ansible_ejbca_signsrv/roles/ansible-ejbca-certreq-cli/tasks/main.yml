@@ -25,14 +25,36 @@
   when: 
     - identity_info[0] is defined
 
-- name: Sign CSR End Entities
+- name: Sign VA Delegated Signer CSR End Entities
   include_tasks: csr_cert_sign.yml
-  loop: "{{ identity_csr_info }}"
+  loop: "{{ va_identity_csr_info }}"
   loop_control:
     label: "{{ item.name }}"
-  #no_log: "{{ no_log_value }}"
+  no_log: "{{ no_log_value }}"
   when: 
-    - identity_csr_info[0] is defined
+    - va_identity_csr_info[0] is defined
+    - inventory_hostname in groups['eeVaServers']
+
+- name: Sign LDAPS CSR End Entities
+  include_tasks: csr_cert_sign.yml
+  loop: "{{ ra_identity_csr_info }}"
+  loop_control:
+    label: "{{ item.name }}"
+  no_log: "{{ no_log_value }}"
+  when:
+    - ra_identity_csr_info[0] is defined
+    - inventory_hostname in groups['eeRaServers']
+
+- name: Copy key binding serial numbers when running the RA or VA play
+  copy:
+    src: "{{ identity_batch_output_dir }}/peer_cert_serial_numbers.yml"
+    dest: "{{ ejbca_csr_dir_output }}"
+    remote_src: true
+  register: peer_cert_serial_numbers_copied
+  changed_when: false
+  when:
+    - inventory_hostname in groups['eeRaServers'] or
+      inventory_hostname in groups['eeVaServers']
 
 - name: Download CA Certs for Trustchain file for HTTPD
   include_tasks: get_ca_certs.yml

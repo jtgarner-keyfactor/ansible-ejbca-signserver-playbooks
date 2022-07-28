@@ -1,0 +1,99 @@
+---
+
+
+- name: Generate keys for Peer bindings on crypto token
+  include_role:
+    name: ansible-ejbca-crypto-token
+    tasks_from: generate_keys
+  loop: "{{ ejbca_keybinding |subelements('crypto_token') }}"
+  loop_control:
+    label: "{{ key_item.0.caname }}"
+    loop_var: key_item
+  #no_log: "{{ no_log_value }}"
+  tags: key_generation
+  when:
+    - ejbca_keybinding[0] is defined
+
+- name: Peer node key binding creation and CSR generation
+  block:
+
+  - name: OCSP key binding creation and CSR generation
+    block:
+
+    - name: Create OCSP Key Bindings
+      include_role:
+        name: ansible-ejbca-key-binding
+      vars:
+        key_bindings: "{{ ejbca_keybinding }}"
+        ocsp_key_bind: true
+
+    - name: Create a fact for va_identity_csr_info
+      set_fact:
+        cacheable: yes
+        va_identity_csr_info: |
+          [
+          {% for line in ejbca_keybinding %}
+          {{ '{' }} 'name':'{{ line.name }}',  
+          'dn': '{{ line.dn }}', 
+          'caname': '{{ line.caname }}', 
+          'token': '{{ line.token }}', 
+          'certprofile': '{{ line.certprofile }}', 
+          'eeprofile': '{{ line.eeprofile }}' {{ '}' }},
+          {% endfor %}
+          ]
+      ignore_errors: yes  
+
+    - name: Write CSR info to shared vars directory {{ sharedVarsLocation }}/va_delegated_signers.yml for use with signing VA delegated signers
+      become: no
+      copy:
+        dest: "{{ sharedVarsLocation }}/va_delegated_signers.yml"
+        content: "{{ va_identity_csr_info| to_nice_yaml }}"
+      delegate_to: localhost
+      register: write_the_output_va_signers
+      no_log: "{{ no_log_value }}"
+
+    when: 
+      - ejbca_keybinding[0] is defined
+      - inventory_hostname in groups['eeVaServers']
+
+  - name: LDAPS key binding creation and CSR generation
+    block:
+
+    - name: Create LDAPS Key Binding
+      include_role:
+        name: ansible-ejbca-key-binding
+      vars:
+        key_bindings: "{{ ejbca_keybinding }}"
+        ldaps_key_bind: true
+
+    - name: Create a fact for ra_identity_csr_info
+      set_fact:
+        cacheable: yes
+        ra_identity_csr_info: |
+          [
+          {% for line in ejbca_keybinding %}
+          {{ '{' }} 'name':'{{ line.name }}',  
+          'dn': '{{ line.dn }}', 
+          'caname': '{{ line.caname }}', 
+          'token': '{{ line.token }}', 
+          'certprofile': '{{ line.certprofile }}', 
+          'eeprofile': '{{ line.eeprofile }}' {{ '}' }},
+          {% endfor %}
+          ]
+      ignore_errors: yes  
+
+    - name: Write CSR info to shared vars directory {{ sharedVarsLocation }}/ldaps_key_binding.yml for use with signing LDAPS Key Binding
+      become: no
+      copy:
+        dest: "{{ sharedVarsLocation }}/ldaps_key_binding.yml"
+        content: "{{ ra_identity_csr_info| to_nice_yaml }}"
+      delegate_to: localhost
+      register: write_the_output_ra_signers
+      no_log: "{{ no_log_value }}"
+
+    when: 
+      - ejbca_keybinding[0] is defined
+      - inventory_hostname in groups['eeRaServers']
+
+  when: 
+    - ejbca_keybinding[0] is defined

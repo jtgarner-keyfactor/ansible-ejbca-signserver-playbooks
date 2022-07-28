@@ -1,0 +1,17 @@
+---
+
+- name: Check deployment
+  include_role: 
+    name: ansible-ejbca-restart-wildfly
+  vars:
+    restart_wildfly: true
+  tags: check_deployment
+
+- name: Create crypto tokens for LDAPS Key Binding
+  include_role: 
+    name: ansible-ejbca-crypto-token
+    tasks_from: add_crypto_token
+  loop: "{{ ejbca_ra_crypto_tokens }}"
+  no_log: "{{ no_log_value }}"
+  when:
+    - ejbca_ra_crypto_tokens[0] is defined

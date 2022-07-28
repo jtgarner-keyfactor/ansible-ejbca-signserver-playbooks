@@ -1,0 +1,18 @@
+---
+# tasks file for primekey
+
+- name: Create crypto token on Peer nodes
+  include_tasks: create_crypto_token.yml
+  when:
+    - ejbca_crypto_tokens[0] is defined
+
+- name: Generate keys on Peer nodes
+  include_tasks: gen_keys.yml
+  when:
+    - ejbca_keybinding[0] is defined
+
+- name: Configure EJBCA Enrollment protocols on RA Node
+  include_role:
+    name: ansible-ejbca-enroll-protocols
+  when: 
+    - disable_ejbca_protocols[0] is defined or enable_ejbca_protocols[0] is defined

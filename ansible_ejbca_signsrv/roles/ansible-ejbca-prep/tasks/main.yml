@@ -23,3 +23,5 @@
     - databaseprotection_enablesign_AuditRecordData|bool
     - databaseprotection_enableverify_AuditRecordData is defined
     - databaseprotection_enableverify_AuditRecordData|bool
+    - inventory_hostname in groups['initialCaServer'] or
+      inventory_hostname in groups['eeCaServers'][0]

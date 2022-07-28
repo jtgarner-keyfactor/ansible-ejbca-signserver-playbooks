@@ -4,4 +4,4 @@
 - name: Import Signed OCSP Signer Certificates
   include_tasks: confingure_ocsp_bind.yml
   when:
-    - ejbca_va_keybinding[0] is defined
+    - ejbca_keybinding[0] is defined

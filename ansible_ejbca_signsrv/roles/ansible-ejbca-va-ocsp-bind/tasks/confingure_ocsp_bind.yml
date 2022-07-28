@@ -6,7 +6,7 @@
     dest: "{{ identity_batch_output_dir }}/{{ item.name }}.crt"
     owner: "{{ ejbca_user }}"
     group: "{{ ejbca_group }}"
-  loop: "{{ ejbca_va_keybinding }}"
+  loop: "{{ ejbca_keybinding }}"
   loop_control:
     label: "{{ item.name }}.crt"
   register: file_copy
@@ -20,7 +20,7 @@
   become: yes
   become_user: "{{ ejbca_user }}"
   register: keybinding_import
-  loop: "{{ ejbca_va_keybinding }}"
+  loop: "{{ ejbca_keybinding }}"
   no_log: "{{ no_log_value }}"
 
 - name: Activate OCSP key binding
@@ -31,7 +31,7 @@
   become: yes
   become_user: "{{ ejbca_user }}"
   register: keybinding_setstatus
-  loop: "{{ ejbca_va_keybinding }}"
+  loop: "{{ ejbca_keybinding }}"
   no_log: "{{ no_log_value }}"
 
 #TODO - Figure out why this can't be set via CLI, but works by setting in the UI
@@ -41,5 +41,5 @@
 #  become: yes
 #  become_user: "{{ ejbca_user }}"
 #  register: keybinding_modify
-#  loop: "{{ ejbca_va_keybinding }}"
+#  loop: "{{ ejbca_keybinding }}"
 #  when: item.name not in keybinding_exists.stdout

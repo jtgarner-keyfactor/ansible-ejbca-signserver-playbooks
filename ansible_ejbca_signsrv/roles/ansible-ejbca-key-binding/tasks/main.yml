@@ -12,3 +12,9 @@
   when:
     - ocsp_key_bind is defined 
     - ocsp_key_bind|bool
+
+- name: Create LDAPS Key Binding 
+  include_tasks: add_keybinding_ra.yml
+  when:
+    - ldaps_key_bind is defined 
+    - ldaps_key_bind|bool

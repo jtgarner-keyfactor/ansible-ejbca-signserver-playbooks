@@ -1,0 +1,93 @@
+---
+# tasks file for ansible-ejbca-rest-api
+
+- name: Check for existing Rest API public key
+  stat:
+    path: "{{ local_rest_dir }}/{{ rest_public_key }}"
+  register: existing_rest_public_key
+
+- name: Create new public key
+  block:
+
+  - name: Create certificate signing request on the server
+    openssl_csr:
+      path: "{{ csr_path }}"
+      privatekey_content: "{{ enc_rest_key }}"
+      privatekey_passphrase: '{{ enc_private_key_pass }}'
+      digest: sha256
+      common_name: "{{ cert_common_name | default('RestRA') }}"
+      organization_name: '{{ cert_organization_name | default(omit) }}'
+      organizational_unit_name: '{{ cert_organizational_unit_name | default(omit) }}'
+      country_name: '{{ cert_country_name | default(omit) }}'
+      state_or_province_name: '{{ cert_state_or_province_name | default(omit) }}'
+
+  - name: Issue REST API public key
+    include_tasks: rest_creds.yml
+    loop: "{{ rest_api_creds }}"
+    loop_control:
+      label: "{{ item.name }}"
+      
+  when: existing_rest_public_key.stat.exists == false
+
+- name: Add public key to REST Role
+  delegate_to: "{{ groups['eeCaServers'][0] }}"
+  command: >
+    "{{ ejbca_sh }}" roles addrolemember
+    --role "{{ item.role }}"
+    --caname "{{ item.caname }}"
+    --with "{{ item.match_with }}"
+    --value "{{ item.match_value }}"
+  become: true
+  become_user: "{{ ejbca_user }}"
+  register: adding_rolemember
+  loop: "{{ rest_api_creds }}"
+  loop_control:
+    label: "{{ item.match_value }}"
+  failed_when: (adding_rolemember.rc >= 2) or ("No such CA '" + item.caname + "'." in adding_rolemember.stdout)
+  changed_when: adding_rolemember.rc == 0
+
+- name: Clean up public key for REST Calls
+  lineinfile:
+    path: "{{ local_rest_dir }}/{{ rest_public_key }}"
+    regex: '^Subject'
+    state: absent
+
+- name: Clean up public key for REST Calls
+  lineinfile:
+    path: "{{ local_rest_dir }}/{{ rest_public_key }}"
+    regex: '^Issuer'
+    state: absent
+
+# - name: Set rest_public_key fact 
+#   set_fact: 
+#     rest_public_key: "{{ lookup('file', '{{ local_rest_dir }}/{{ rest_public_key }}') }}"
+
+- name: Download TLS certificate CA chain for REST calls
+  get_url:
+    url: "{{ ca_cert_url }}"
+    dest: "{{ ca_path }}"
+  register: issuing_ca_download
+
+- name: Clean up CA chain for REST Calls
+  lineinfile:
+    path: "{{ ca_path }}"
+    regex: '^Subject'
+    state: absent
+
+- name: Clean up CA chain for REST Calls
+  lineinfile:
+    path: "{{ ca_path }}"
+    regex: '^Issuer'
+    state: absent
+
+- name: Get REST Status
+  uri:
+    url: https://{{ ejbca_api_base_url }}/{{ ejbca_api_url }}
+    method: GET
+    body_format: json
+    ca_path: "{{ ca_path }}"
+    client_cert: "{{ local_rest_dir }}/{{ rest_public_key }}"
+    client_key: "{{ local_rest_dir }}/{{ rest_private_key }}"
+  register: rest_status
+
+- debug: msg="{{ rest_status }}"

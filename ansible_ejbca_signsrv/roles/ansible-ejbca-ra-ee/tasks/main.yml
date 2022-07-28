@@ -1,9 +1,20 @@
 ---
 # tasks file for ansible-ejbca-ra-ee
 
-- name: Check deployment
-  include_role: 
-    name: ansible-ejbca-restart-wildfly
-  vars:
-    restart_wildfly: true
-  tags: check_deployment
+- name: Create crypto token on external RA
+  include_tasks: create_crypto_token_ra.yml
+  when:
+    - ejbca_ra_crypto_tokens[0] is defined
+    - inventory_hostname in groups['eeRaServers']
+
+- name: Generate keys on external RA
+  include_tasks: gen_keys_ra.yml
+  when:
+    - ejbca_ra_keybinding[0] is defined
+    - inventory_hostname in groups['eeRaServers']
+
+- name: Configure EJBCA Enrollment protocols
+  include_role:
+    name: ansible-ejbca-enroll-protocols
+  when: 
+    - disable_ejbca_protocols[0] is defined or enable_ejbca_protocols[0] is defined
