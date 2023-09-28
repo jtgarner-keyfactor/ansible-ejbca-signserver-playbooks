@@ -75,7 +75,7 @@ ansible-playbook -i inventory -l eeCaServers,ca01 deployExtRootCaForSubPart3.yml
 3. Run:
 
 ```bash
-ansible-playbook -i inventory -l eeCaServers,ca01 deployExtRootCaForSubPart3.yml --ask-become-pass
+ansible-playbook -i inventory -l eeCaServers,ca01 deployExtRootCaForSubPart5.yml --ask-become-pass
 ```
 
 ### Deploy Additional CA Node(s)
