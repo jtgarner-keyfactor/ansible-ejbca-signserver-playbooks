@@ -65,14 +65,14 @@
 - name: Use CLI to create the Sub CA's
   block:
 
-    - name: Create crypto token for Suborindated CA's not using PKCS11
+    - name: Create crypto token for Subordinated CA's not using PKCS11
       include_role: 
         name: ansible-ejbca-crypto-token
         tasks_from: add_crypto_token
       loop: "{{ sub_add_certification_authorities }}"
       no_log: true
 
-    - name: Generate keys for Suborindated CA's on crypto token
+    - name: Generate keys for Subordinated CA's on crypto token
       include_role:
         name: ansible-ejbca-crypto-token
         tasks_from: generate_keys

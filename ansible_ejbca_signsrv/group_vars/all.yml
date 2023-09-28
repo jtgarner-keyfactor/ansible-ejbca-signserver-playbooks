@@ -39,7 +39,7 @@ ejbca_cacrt_dir_output: "{{ playbook_dir }}/ejbcaCaCerts"
 ejbca_csr_dir_output: "{{ playbook_dir }}/ejbcaCSR"
 
 # Create Root Node TLS end entity to Issuing Cluster and copy down to Ansible controller
-create_root_tls_cert: true
+create_root_tls_cert: false
 
 # If configuring peering, the serial numbers used in the EJBCA roles are stored as a fact in that yaml file
 peer_ca_cert_serial_numbers: "{{ lookup('file', '~/ansible/ansibleCacheDir/peer_cert_serial_numbers.yml', errors='ignore' ) | from_yaml }}"

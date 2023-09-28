@@ -2,16 +2,14 @@
 
 all:
   hosts:
-    ejbcart01.solitude.skyrim
-    ejbca01.solitude.skyrim
-    ejbcava01.solitude.skyrim
-    ejbcara01.solitude.skyrim
-    webrepo.solitude.skyrim
+    # ca hosts
+    # ra hosts
+    # va hosts
   children:
-    eeRootCaServers:
-      hosts:
-        rt01:
-          ansible_host: 172.16.170.13
+    # eeRootCaServers:
+    #   hosts:
+    #     rt01:
+    #       ansible_host: 172.16.170.13
     eeCaServers:
       hosts:
         ca01:
@@ -20,30 +18,30 @@ all:
       hosts:
         ca02:
           ansible_host: 172.16.170.202
-    extSignMgmtCaServers:
-      hosts:
-        extsignmgmt01:
-          ansible_host: 172.16.170.178
-    extSignPolicyCas:
-      hosts:
-        extsignpolca01:
-          ansible_host: 172.16.170.178
-    policyCaSignIssuingCas:
-      hosts:
-        polcasignissueca:
-          ansible_host: 172.16.170.178
-    peerconfigCas:
-      hosts:
-        peerca01:
-          ansible_host: 172.16.170.178 
-    extEeRootCaServers:
-      hosts:
-        extroot01:
-          ansible_host: 172.16.170.180
-    eeSubCaServers:
-      hosts:
-        subca01:
-          ansible_host: 172.16.170.179
+    # extSignMgmtCaServers:
+    #   hosts:
+    #     extsignmgmt01:
+    #       ansible_host: 172.16.170.178
+    # extSignPolicyCas:
+    #   hosts:
+    #     extsignpolca01:
+    #       ansible_host: 172.16.170.178
+    # policyCaSignIssuingCas:
+    #   hosts:
+    #     polcasignissueca:
+    #       ansible_host: 172.16.170.178
+    # peerconfigCas:
+    #   hosts:
+    #     peerca01:
+    #       ansible_host: 172.16.170.178 
+    # extEeRootCaServers:
+    #   hosts:
+    #     extroot01:
+    #       ansible_host: 172.16.170.180
+    # eeSubCaServers:
+    #   hosts:
+    #     subca01:
+    #       ansible_host: 172.16.170.179
     eeRaServers:
       hosts:
         ra01:
@@ -52,30 +50,14 @@ all:
       hosts:
         va01:
           ansible_host: 172.16.170.173
-    eeSignServers:
-      hosts:
-        ss01:
-          ansible_host: 172.16.170.178
-    ceSignServers:
-      hosts:
-        cess01:
-          ansible_host: 172.16.170.179
-    dbServers:
-      hosts:
-        webrepo.solitude.skyrim:
-          ansible_host: 172.16.170.133       
-    vaSigners:
-      hosts:
-        va01:
-          ansible_host: 172.16.170.173
-    ceServers:
-      hosts:
-        ce01:
-          ansible_host: 172.16.170.177
-    conServers:
-      hosts:
-        docker02.solitude.skyrim:
-          ansible_host: 172.16.170.8
+    # dbServers:
+    #   hosts:
+    #     webrepo.solitude.skyrim:
+    #       ansible_host: 172.16.170.133       
+    # vaSigners:
+    #   hosts:
+    #     va01:
+    #       ansible_host: 172.16.170.173
     pkiTlsCerts:
       hosts:
         pkiTlsEnrollmentCA:
@@ -84,72 +66,56 @@ all:
       hosts:
         pkiCsrEnrollmentCa:
           ansible_host: 172.16.170.170
-    ssTlsCerts:
-      hosts:
-        ssTlsEnrollmentCa:
-          ansible_host: 172.16.170.170 
-    ssCsrCerts:
-      hosts:
-        ssCsrEnrollmentCa:
-          ansible_host: 172.16.170.170   
     httpdServers:
       children:
         eeCaServers:
         eeVaServers:
         eeRaServers:
-        ceServers:
-        eeSignServers:
-        ceSignServers:
-        extSignMgmtCaServers:
-        peerconfigCas:
-        extEeRootCaServers:
-        eeSubCaServers: 
-        ejbcaCaAddNodes:
+        # ceServers:
+        # eeSignServers:
+        # ceSignServers:
+        # extSignMgmtCaServers:
+        # peerconfigCas:
+        # extEeRootCaServers:
+        # eeSubCaServers: 
+        # ejbcaCaAddNodes:
     mariadbServers:
       children:
-        eeRootCaServers:
+        # eeRootCaServers:
         eeCaServers:
         eeVaServers:
         eeRaServers:
-        ceServers:
-        eeSignServers:
-        ceSignServers:
-        extSignMgmtCaServers:
-        extEeRootCaServers:
-        eeSubCaServers:
-        ejbcaCaAddNodes:
+        # ceServers:
+        # eeSignServers:
+        # ceSignServers:
+        # extSignMgmtCaServers:
+        # extEeRootCaServers:
+        # eeSubCaServers:
+        # ejbcaCaAddNodes:
     applicationServers:
       children:
-        eeRootCaServers:
+        # eeRootCaServers:
         eeCaServers:
         eeVaServers:
         eeRaServers:
         ceServers:
-        eeSignServers:
-        ceSignServers:
-        extSignMgmtCaServers:
-        extSignPolicyCas:
-        policyCaSignIssuingCas:
-        extEeRootCaServers:
-        eeSubCaServers:
-        ejbcaCaAddNodes:
+        # eeSignServers:
+        # ceSignServers:
+        # extSignMgmtCaServers:
+        # extSignPolicyCas:
+        # policyCaSignIssuingCas:
+        # extEeRootCaServers:
+        # eeSubCaServers:
+        # ejbcaCaAddNodes:
     upgradeEeServers:
       children:
-        eeRootCaServers:
+        # eeRootCaServers:
         eeCaServers:
         eeVaServers:
         eeRaServers:
-        extEeRootCaServers:
-        eeSubCaServers:  
-    upgradeCeServers:
-      children:
-        ceServers:   
+        # extEeRootCaServers:
+        # eeSubCaServers:  
     pkiServers:
-      children:
-        mariadbServers:
-        applicationServers:
-        httpdServers:
-    signServers:
       children:
         mariadbServers:
         applicationServers:

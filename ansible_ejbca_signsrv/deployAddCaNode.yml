@@ -10,4 +10,4 @@
     - ansible-ejbca-wildfly
     - ansible-ejbca-pkc11-client
     - ansible-ejbca-prep
-    - ansible-pki-ss-httpd
+    - ansible-httpd

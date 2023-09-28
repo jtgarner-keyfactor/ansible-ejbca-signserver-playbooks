@@ -19,6 +19,7 @@
   gather_facts: false
   roles:
     - ansible-ejbca-certreq-cli
+    
 # TODO New role to create the peer_cert_serial_numbers.yml
 - hosts: pkiServers:eeRaServers
   become: yes
@@ -26,5 +27,5 @@
   gather_facts: false
   roles:
     - ansible-ejbca-importcacrt
-    - ansible-pki-ss-httpd
+    - ansible-httpd
     - ansible-ejbca-peer-in

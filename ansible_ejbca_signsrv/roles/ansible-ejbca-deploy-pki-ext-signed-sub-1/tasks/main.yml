@@ -8,7 +8,7 @@
     restart_wildfly: true
   tags: check_deployment
 
-- name: Suborindated CA Keys
+- name: Subordinated CA Keys
   block:
  
     - name: Generate Keys for Subordinated CA's using Client Toolbox
@@ -74,7 +74,7 @@
         - configdump_directory_structure is defined
         - configdump_import_files is defined
 
-    - name: Stage Suborindated CA template to create with configdump
+    - name: Stage Subordinated CA template to create with configdump
       include_role:
         name: ansible-ejbca-cnfdump-stage
         tasks_from: stage_ca
@@ -90,7 +90,7 @@
       when:
         - item.rootDn == "External"
       
-    - name: Intialize Suborindated CA's with configdump
+    - name: Intialize Subordinated CA's with configdump
       command: "./dist/configdump/configdump.sh import --ignore-errors --overwrite update --non-interactive continue -l {{ ejbca_home }}/dump/subs --initialize"
       args:
         chdir: "{{ ejbca_home }}"
@@ -109,7 +109,7 @@
 - name: Use CLI to create the CA's
   block:
 
-    - name: Initialize Suborindated CAs with CLI commands
+    - name: Initialize Subordinated CAs with CLI commands
       include_role:
         name: ansible-ejbca-init-ca
         tasks_from: init_ca
@@ -119,7 +119,7 @@
       no_log: true
       tags: create_cas
 
-    - name: Configure Suborindated CA's settings
+    - name: Configure Subordinated CA's settings
       include_role: 
         name: ansible-ejbca-conf-ca-exts
         tasks_from: config_ca_extensions

@@ -1,7 +1,6 @@
 ---
 
 # ansible-playbook -i inventory -l va01,pkiTlsCerts,pkiCsrCerts deployVa.yml
-
 - hosts: pkiServers:eeVaServers
   become: yes
   become_method: sudo
@@ -38,4 +37,4 @@
     - ansible-ejbca-crl-import-export
     - ansible-ejbca-peer-in
     - ansible-ejbca-va-ocsp-bind
-    - ansible-pki-ss-httpd
+    - ansible-httpd
