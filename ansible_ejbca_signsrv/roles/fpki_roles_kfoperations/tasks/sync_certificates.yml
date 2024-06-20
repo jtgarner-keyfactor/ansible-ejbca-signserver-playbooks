@@ -1,0 +1,55 @@
+---
+
+- name: Create directory for holding certificates
+  ansible.builtin.file:
+    path: "{{ kf_ejbca_home }}/certificates"
+    state: directory
+    owner: "{{ kf_ejbca_user.name }}"
+    group: "{{ kf_ejbca_user.group }}"
+    mode: '0750'
+
+- name: Export EJBCA CA certificates to local directory
+  when: inventory_hostname in groups['certificate_authorities'][0]
+  become: true
+  become_user: "{{ kf_ejbca_user.name }}"
+  loop:
+    - "{{ kf_cas_mgmt }}"
+    - "{{ kf_cas_sub }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: output_ca_certs
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh ca getcacert
+    --caname "{{ item.name }}"
+    -f "{{ kf_ejbca_home }}/certificates/{{ item.name }}.pem"
+
+- name: Transfer EJBCA CA certificates from first EJBCA CA host server to Ansible Controller
+  #notify: Tmp cleanup
+  when: inventory_hostname in groups['certificate_authorities'][0]
+  loop:
+    - "{{ kf_cas_mgmt }}"
+    - "{{ kf_cas_sub }}"
+  loop_control:
+    label: "{{ item.name }}"
+  delegate_to: "{{ inventory_hostname }}"
+  ansible.builtin.fetch:
+    src: "{{ kf_ejbca_home }}/certificates/{{ item.name }}.pem"
+    #dest: "/tmp/"
+    dest: "{{ playbook_dir }}/ejbcaCerts/"
+    flat: true
+    
+- name: Transfer EJBCA CA certificates from Ansible Controller to Peer Servers
+  when: inventory_hostname in groups['peer_servers']
+  loop:
+    - "{{ kf_cas_mgmt }}"
+    - "{{ kf_cas_sub }}"
+  loop_control:
+    label: "{{ item.name }}"
+  delegate_to: "{{ inventory_hostname }}"
+  ansible.builtin.copy:
+    #src: "/tmp/{{ item.name }}.pem"
+    src: "{{ playbook_dir }}/ejbcaCerts/{{ item.name }}.pem"
+    dest: "{{ kf_ejbca_home }}/certificates/{{ item.name }}.pem"
+    owner: "{{ kf_ejbca_user.name }}"
+    group: "{{ kf_ejbca_user.group }}"
+

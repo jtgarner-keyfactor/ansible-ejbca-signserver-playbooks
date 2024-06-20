@@ -1,0 +1,78 @@
+---
+
+- name: Create {{ kf_group }} group
+  ansible.builtin.group:
+    name: "{{ kf_group }}"
+    state: present
+
+- name: Create {{ kf_user }} user and home directory
+  ansible.builtin.user:
+    name: "{{ kf_user }}"
+    group: "{{ kf_group }}"
+    createhome: true
+    state: present
+
+- name: Check for existing media directory
+  register: media_dir_check
+  ansible.builtin.stat:
+    path: /opt/media
+
+- block:
+
+  - name: Install unzip
+    ansible.builtin.package:
+      name: unzip
+      state: present
+
+  - name: Unarchive media directory to hosts
+    ansible.builtin.unarchive:
+      src: /Users/jtgarner/Projects/stripped-down-ansible/media.zip
+      dest: /opt
+      owner: root
+      group: root
+
+  when: not media_dir_check.stat.exists
+
+- name: Check if SoftHsm is already installed
+  ansible.builtin.stat:
+    path: /var/lib/softhsm
+  register: softhsm_check
+
+- name: Download and install SoftHsm
+  block:
+
+  - name: Download SoftHSM RPM
+    get_url:
+      url: http://repo.okay.com.mx/centos/8/x86_64/release/softhsm-2.4.0-2.el8.x86_64.rpm
+      dest: "{{ app_root_dir }}/softhsm.rpm"
+      timeout: 60
+    register: download_softhsm_status
+
+  - name: Install SoftHSM
+    ansible.builtin.dnf:
+      name: "{{ app_root_dir }}/softhsm.rpm"
+      disable_gpg_check: true
+    register: install_softhsm_rpm
+
+  - name: Remove installed SoftHSM RPM
+    ansible.builtin.file:
+      path: "{{ app_root_dir }}/softhsm.rpm"
+      state: absent
+  
+  when: not softhsm_check.stat.exists
+
+- name: Set permissions on softhsm lib directory
+  ansible.builtin.file:
+    path: /var/lib/softhsm
+    state: directory
+    recurse: yes
+    mode: '0750'
+    owner: "{{ kf_user }}"
+    group: "{{ kf_group }}"
+
+- name: Create HSM Slots
+  include_tasks: create_slots.yml
+  loop: "{{ hsm_slots|dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+    

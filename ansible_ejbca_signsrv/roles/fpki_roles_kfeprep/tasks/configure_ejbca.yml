@@ -1,0 +1,136 @@
+---
+
+- name: EJBCA User Home Directory
+  when: kf_ejbca.create_home|default(true)
+  block:
+
+    - name: Add environment variables to {{ kf_ejbca_user }} user profile
+      ansible.builtin.template:
+        src: user_profile.j2
+        dest: /home/{{ kf_ejbca_user }}/.bash_profile
+        owner: "{{ kf_ejbca_user }}"
+        group: "{{ kf_ejbca_group }}"
+
+    - name: Set file permissions for {{ kf_ejbca_home }}
+      ansible.builtin.file:
+        path: "{{ kf_ejbca_home }}"
+        owner: "{{ kf_ejbca_user }}"
+        group: "{{ kf_ejbca_group }}"
+        state: directory
+
+- name: Create Ejbca Database
+  community.mysql.mysql_db:
+    name: "{{ mariadb_databases.ejbca.name }}"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    state: present
+  
+- name: Create Ejbca Database User
+  community.mysql.mysql_user:
+    name: "{{ mariadb_databases.ejbca.user }}"
+    password: "{{ mariadb_databases.ejbca.password }}"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    priv: 
+      "{{ mariadb_databases.ejbca.priv }}"
+    state: present
+
+- name: Create ejbca-custom/conf directory
+  ansible.builtin.file:
+    path: /opt/ejbca-custom/conf
+    state: directory
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+
+- name: Create ejbca-custom/p12 directory
+  ansible.builtin.file:
+    path: /opt/ejbca-custom/p12
+    state: directory
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+
+- name: Configure EJBCA property files in ejbca-custom/conf
+  loop:
+    - cesecore.properties.j2
+    - database.properties.j2
+    - ejbca.properties.j2
+    - web.properties.j2
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "/opt/ejbca-custom/conf/{{ item | regex_replace('.j2$', '') }}" 
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+  
+- name: Configure EJBCA crypto related property files in ejbca-custom/conf
+  loop: 
+    - databaseprotection.properties.j2
+  loop_control:
+    label: "{{ item }}"
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "/opt/ejbca-custom/conf/{{ item | regex_replace('.j2$', '') }}"
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+
+- name: Find sample files in the /opt/ejbca directory
+  register: sample_files
+  ansible.builtin.find:
+    path: "{{ kf_ejbca_home }}/conf"
+    patterns: '*.sample'
+    follow: true
+
+- name: Remove sample files
+  loop: "{{ sample_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+
+# Creating the /home/jboss-eap/.ansible/tmp directory here because it generates errors here if you don't first.
+- name: Create JBOSS Ansible tmp directory
+  ansible.builtin.file:
+    path: "/home/{{ kf_ejbca_user }}/.ansible/tmp"
+    state: directory
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+    mode: 0700
+    recurse: yes
+ 
+- name: Create database tables and database index
+  loop: "{{ mariadb_databases.ejbca.sql_scripts }}"
+  failed_when: create_tables_indexes.rc > 1
+  register: create_tables_indexes
+  no_log: "{{ hide_log_output }}"
+  ansible.builtin.shell: >
+    mysql -u {{ mariadb_databases.ejbca.user }}
+    --password={{ mariadb_databases.ejbca.password }}
+    --database={{ mariadb_databases.ejbca.name }} < {{ kf_ejbca_home }}/doc/sql-scripts/{{ item }}
+
+- name: Check if application server exists
+  register: found_appsrv_home
+  changed_when: false
+  ansible.builtin.stat:
+    path: "{{ jboss_home }}"
+
+- name: EJBCA EAR file
+  when: found_appsrv_home.stat.exists
+  block:
+
+    - name: Build EJBCA EAR file when application server exists
+      become_user: "{{ kf_ejbca_user }}"
+      environment:
+        EJBCA_HOME: "{{ kf_ejbca_home }}"
+        APPSRV_HOME: "{{ kf_ejbca_home }}"
+      args:
+        chdir: "{{ kf_ejbca_home }}"
+      register: compile_ejbca_ear
+      ansible.builtin.command: ant clean build
+
+    - name: Copy ejbca.ear file to {{ jboss_home }}/standalone/deployments directory
+      ansible.builtin.copy:
+        src: "{{ kf_ejbca_home }}/dist/ejbca.ear"
+        dest: "{{ jboss_home }}/standalone/deployments"
+        owner: "{{ kf_ejbca_user }}"
+        group: "{{ kf_ejbca_group }}"
+        remote_src: true

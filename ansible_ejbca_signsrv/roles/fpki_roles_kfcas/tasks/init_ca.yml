@@ -1,0 +1,136 @@
+---
+
+- name: Create csr directory for holding CA CSR
+  ansible.builtin.file:
+    path: "{{ kf_ejbca_home }}/csr"
+    state: directory
+    owner: "{{ kf_ejbca_user.name }}"
+    group: "{{ kf_ejbca_user.group }}"
+    mode: '0770'
+
+- name: Create {{ item.name }}_catoken.properties in /opt/ejbca-custom
+  ansible.builtin.template:
+    src: "{{ kf_properties.catoken.src }}"
+    dest: "/opt/ejbca-custom/conf/{{ item.name }}_catoken.properties" 
+    owner: "{{ kf_ejbca_user.name }}"
+    group: "{{ kf_ejbca_user.group }}"
+
+- name: Check if cryptotoken '{{ item.token.name }}' already exists
+  register: existing_crypto_token_query
+  changed_when: false
+  failed_when: existing_crypto_token_query.rc > 1
+  no_log: "{{ hide_log_output }}"
+  ansible.builtin.command: >
+      {{ kf_ejbca_home }}/bin/ejbca.sh cryptotoken listkeys 
+      --token "{{ item.token.name }}"
+
+- name: Create cryptotoken '{{ item.token.name }}'
+  when: existing_crypto_token_query.stdout is search('Unknown CryptoToken')
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh cryptotoken create
+    --token "{{ item.token.name }}"
+    --pin "{{ item.token.pin }}"
+    --autoactivate true
+    --type Pkcs11NgCryptoToken
+    --lib "{{ item.token.lib }}"
+    --slotlabel "{{ item.token.slot_label }}"
+    --slotlabeltype SLOT_LABEL
+    --forceusedslots
+
+- name: Create '{{ item.name }}' keys
+  when: not k.value in existing_crypto_token_query.stdout # only create when not in token query
+  loop: "{{ item.token_keys|dict2items }}"
+  loop_control:
+    loop_var: k
+    label: "{{ k.key }}"
+  failed_when: existing_crypto_token_query.rc > 1
+  ansible.builtin.command: >
+    "{{ kf_ejbca_home }}/bin/ejbca.sh" cryptotoken generatekey
+    --token "{{ item.token.name }}"
+    --alias "{{ k.value }}"
+    --keyspec 4096
+
+- name: Create {{ item.name }}
+  become_user: "{{ kf_ejbca_user.name }}"
+  register: initialize_ca
+  failed_when: 
+    - initialize_ca.rc >= 2 or
+      initialize_ca.stdout is search('ERROR')
+  changed_when: 
+    - initialize_ca.rc == 0
+  no_log: "{{ hide_log_output }}"
+  args:
+    chdir: "{{ kf_ejbca_home }}/csr"
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh ca init
+    --caname "{{ item.name }}" 
+    --dn "{{ item.dn }}"  
+    --tokenName "{{ item.token.name }}" 
+    --tokenprop /opt/ejbca-custom/conf/{{ item.name }}_catoken.properties
+    --keyspec 4096 
+    --keytype RSA -s SHA384WithRSA -v 2555 
+    --policy null 
+    {% if item.externalcachain is defined or item.issuer is defined %}
+    --signedby External 
+    -externalcachain "{{ item.externalcachain }}"
+    {% else %}
+    -certprofile "{{ item.profile|default('ROOTCA') }}"
+    {% endif %}
+    --verbose
+
+- name: Additional externally signed CA tasks
+  when: item.externalcachain is defined
+  block:
+
+    - name: Uncheck useLdapDnOrder for {{ item.name }} for externally signed CAs
+      register: change_useldapdnorder
+      changed_when: 
+        - change_useldapdnorder.stdout is search("Current value of useLdapDnOrder is 'true'")
+        - change_useldapdnorder.stdout is search("useLdapDnOrder returned value 'false'")
+      failed_when:
+        - change_useldapdnorder.stdout is search("useLdapDnOrder returned value 'true'")
+      become_user: "{{ kf_ejbca_user.name }}"
+      no_log: false
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh ca editca 
+        --caname {{ kf_cas_sub.name }} 
+        --field useLdapDnOrder 
+        --value 'false'
+
+    - name: Convert and copy CSR
+      when: initialize_ca.changed
+      block:
+
+      - name: Convert DER csr format PEM X.509
+        ansible.builtin.command: >
+          /bin/openssl req -inform DER -outform PEM
+          -in "{{ kf_ejbca_home }}/csr/{{ item.name }}_csr.der"
+          -out "{{ kf_ejbca_home }}/csr/{{ item.name }}_csr.pem"
+
+      - name: Transfer {{ item.name }} to Ansible Controller
+        #notify: Tmp cleanup
+        delegate_to: "{{ inventory_hostname }}"
+        ansible.builtin.fetch:
+          src: "{{ kf_ejbca_home }}/csr/{{ item.name }}_csr.pem"
+          #dest: "/tmp/"
+          dest: "{{ playbook_dir }}/ejbcaCerts/"
+          flat: true
+
+- name: Additional externally signed CA tasks
+  when: item.externalcachain is undefined
+  block:
+
+    - name: Export EJBCA CA certificates to local directory
+      register: output_ca_certs
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh ca getcacert
+        --caname "{{ item.name }}"
+        -f "{{ kf_ejbca_home }}/certificates/{{ item.name }}.pem"
+
+    - name: Transfer {{ item.name }} to Ansible Controller
+      #notify: Tmp cleanup
+      delegate_to: "{{ inventory_hostname }}"
+      ansible.builtin.fetch:
+        src: "{{ kf_ejbca_home }}/certificates/{{ item.name }}.pem"
+        dest: "{{ kf_remote_src_dir }}/"
+        flat: true

@@ -1,0 +1,20 @@
+Object Type: Role
+Version: 1
+Name: ocspIncomingCaPeer
+Role Members: []
+Namespace: ''
+RA Style Id: 0
+Access Rules:
+{% for item in ejbca_va_keybinding %}
+  /ca/{{ item.caname }}/: Allow
+  /internalkeybinding/modify/{{ item.name }}/: Allow
+  /internalkeybinding/view/{{ item.name }}/: Allow
+{% endfor %}
+# TODO - Make the crypto token name a variable instead of hard coded 
+  /cryptotoken/keys/generate/ocspCryptoToken/: Allow
+  /cryptotoken/use/ocspCryptoToken/: Allow
+  /cryptotoken/view/ocspCryptoToken/: Allow
+  /peerincoming/: Allow
+  /peerpublish/readcert/: Allow
+  /peerpublish/writecert/: Allow
+  /peerpublish/writecrl/: Allow

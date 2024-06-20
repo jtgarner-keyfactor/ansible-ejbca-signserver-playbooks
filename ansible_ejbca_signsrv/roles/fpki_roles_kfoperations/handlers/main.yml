@@ -1,0 +1,10 @@
+---
+
+- name: Temporary certificate transfer cleanup
+  loop: 
+    - "/tmp/{{ kf_cas_mgmt }}.pem"
+    - "/tmp/{{ kf_cas_sub }}.pem"
+  local_action:
+    module: ansible.builtin.file
+    path: "{{ item }}"
+    state: absent

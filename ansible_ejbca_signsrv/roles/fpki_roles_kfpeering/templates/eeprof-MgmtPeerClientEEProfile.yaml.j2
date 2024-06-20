@@ -1,0 +1,37 @@
+Object Type: End Entity Profile
+Version: 1
+Name: MgmtPeerClientEEProfile
+E-Mail Used: false
+Description: ''
+Default CA: ManagementCA
+Available CAs:
+- ManagementCA
+Default Certificate Profile: MgmtPeerClient
+Available Certificate Profiles:
+- MgmtPeerClient
+Default Token Type: User Generated
+Available Token Types:
+- User Generated
+Subject DN:
+  CN:
+  - Required: true
+  O:
+  - Required: true
+    Modifiable: false
+    Values:
+    - {{ kf_org }}
+  C:
+  - Required: true
+    Modifiable: false
+    Values:
+    - US
+  OU:
+  - Required: true
+    Modifiable: false
+    Values:
+    - {{ kf_orgunit }}
+Subject Alternative Name:
+  DNSNAME:
+  - Required: true
+    Modifiable: false
+    Copy: true

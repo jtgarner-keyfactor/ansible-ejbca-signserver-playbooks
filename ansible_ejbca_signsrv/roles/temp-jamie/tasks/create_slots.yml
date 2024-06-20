@@ -1,0 +1,22 @@
+---
+
+- name: Check SoftHSM Slots
+  ansible.builtin.shell: >
+    softhsm2-util --show-slots | grep {{ item.value.partition_name }}
+  register: show_hsm_slots
+  changed_when: show_hsm_slots.rc != 0
+  failed_when: false
+  no_log: false
+  
+- name: Create SoftHSM slots
+  ansible.builtin.command: >
+    softhsm2-util 
+    --init-token 
+    --free 
+    --label {{ item.value.partition_name }} 
+    --so-pin {{ item.value.so_pin }} 
+    --pin {{ item.value.partition_password }}
+  become_user: "{{ kf_user }}" 
+  no_log: false
+  register: create_hsm_slots
+  when: show_hsm_slots.changed

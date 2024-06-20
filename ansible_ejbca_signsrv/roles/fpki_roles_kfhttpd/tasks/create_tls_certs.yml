@@ -1,0 +1,108 @@
+---
+
+- name: Find existing {{ item }} end entity
+  register: find_end_entity
+  failed_when:
+    - find_end_entity.rc >= 1
+    - not find_end_entity.stdout is search('does not exist')
+  changed_when:
+    - find_end_entity.rc == 0
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh ra findendentity 
+    --username {{ item }}
+
+- name: Add {{ item }} end entity
+  when: 
+    - not find_end_entity.changed
+  register: create_end_entity
+  failed_when:
+    - create_end_entity.rc >= 1
+    - not create_end_entity.stdout is search('already exists in the database') # return ok if end entity already exists
+  changed_when:
+    - create_end_entity.stdout is search('has been added') # change if end entity successfully added
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh ra addendentity 
+    --username "{{ item }}"
+    --dn "CN={{ item }},OU={{ kf_org_unit }},O={{ kf_org }},C=US"
+    --caname "{{ kf_cas_mgmt.name }}"
+    --token PEM
+    --password "{{ kf_vault_tmppw|default('foo123') }}"
+    --certprofile TlsServerProfile
+    --eeprofile TlsServerEndEntityProfile
+    --type 1 
+
+- name: Reset end entity
+  when:
+    - create_end_entity is skipped
+    - end_entity_reset|default(false)
+  block:
+
+    - name: Revoke ACTIVE {{ item }} end entity and all certificates with status 'Unspecified'
+      register: revoke_end_entity
+      when:
+        - not find_end_entity.stdout is search("Status\:\ 50")
+      failed_when:
+        - not revoke_end_entity.stdout is search('New status=50')
+      changed_when:
+        - revoke_end_entity.stdout is search('New status=50')
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh ra revokeendentity
+        --username "{{ item }}"
+        -r 0
+        
+    - name: Change existing {{ item }} end entity status to NEW so a new certificate can be enrolled
+      when:
+        - revoke_end_entity.changed
+      register: setstatus_end_entity
+      changed_when:
+        - setstatus_end_entity.stdout is search('New status for end entity')
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh ra setendentitystatus
+        --username "{{ item }}"
+        -S 10
+
+- name: Create certificate if end entity was just created, or status is NEW(10)
+  when: 
+    - create_end_entity is changed or
+      setstatus_end_entity is changed or
+      find_end_entity.stdout is search("Status\:\ 10")
+  block:
+
+    - name: Clear End Entity password 
+      register: clear_end_entity_pass
+      become_user: "{{ kf_ejbca_user }}"
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh ra setclearpwd 
+        --username "{{ item }}"
+        --password "{{ kf_vault_tmppw|default('foo123') }}"
+
+    - name: Create {{ item }} certificate and private key using the batch utility
+      register: batch_end_entity
+      failed_when:
+        - batch_end_entity.rc >= 1
+        #- batch_end_entity is search('Cannot batchmake')
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh batch 
+        --username "{{ item }}"
+        -dir /opt/ejbca-custom/p12
+
+- name: Check for existing certificate files before attempting a transfer
+  register: tls_pem_files
+  ansible.builtin.find:
+    path: /opt/ejbca-custom/p12/pem/
+    file_type: file
+
+- name: Transfer {{ item }} to Ansible Controller if file exists in /opt/ejbca-custom/p12/pem directory
+  when: tls_pem_files.files|map(attribute='path') is search(pem)
+  loop: 
+    - "{{ item }}.pem"
+    - "{{ item }}-Key.pem"
+    - "{{ item }}-CA.pem"
+  loop_control:
+    loop_var: pem
+    label: "{{ pem }}"
+  ansible.builtin.fetch:
+    src: /opt/ejbca-custom/p12/pem/{{ pem }}
+    dest: "{{ kf_remote_src_dir }}/"
+    flat: true
+

@@ -1,0 +1,319 @@
+---
+
+# Task logging
+hide_log_output: false
+
+# Software
+app_root_dir: /opt
+media_dir: /opt/media/software-dna
+required_packages:
+  - unzip
+  - java-11-openjdk-devel
+  - nss-tools
+  - wget
+  - python3-libsemanage
+  - httpd
+  - mod_ssl
+  - firewalld
+  - ca-certificates
+
+applications: 
+  - "{{ kf_ejbca_software }}"
+  - "{{ kf_ant_software }}"
+  - "{{ jboss_software }}"
+
+kf_user: jboss-eap
+kf_group: jboss-eap
+
+kf_org: U.S. Government
+kf_org_unit: fpki-lab
+kf_dn: "OU={{ kf_org_unit }},O={{ kf_org }},C=US"
+
+# controller directory for transfering files
+kf_remote_src_dir: "{{ playbook_dir }}/transfer"
+
+# hsm token
+kf_token_name: junktoken
+kf_partition_name: junkpartition 
+kf_vault_partition_passphrase: foo123
+kf_dbProtection_key_label: dbProtectionKey
+
+# MariaDB
+mariadb_root_password: "{{ vault_mariadb_root_password|default('ejbca') }}"
+mariadb_configure_swappiness: true
+mariadb_swappiness: 10
+mariadb_srv_socket: /var/lib/mysql/mysql.sock
+mariadb_databases: 
+  ejbca: 
+    name: ejbca
+    user: ejbca-usr
+    password: "{{ kf_ejbca_vault_db_pass|default('ejbca') }}"
+    priv: "ejbca.*:ALL"        
+    sql_scripts:                      
+      - create-tables-ejbca-mysql.sql
+      - create-index-ejbca.sql
+
+# EJBCA
+kf_ejbca_user: "{{ kf_user }}"
+kf_ejbca_group: "{{ kf_group }}"
+kf_ejbca_home: "{{ app_root_dir }}/ejbca"
+kf_ejbca_create_home: true
+kf_ejbca_version: ejbca_ee_8_2_0_3
+kf_ejbca_software:
+  name: ejbca
+  home: "{{ kf_ejbca_home }}"
+  path: "{{ app_root_dir }}/{{ kf_ejbca_version }}"
+  filename: "{{ kf_ejbca_version }}.zip"
+  source_dir: "{{ media_dir }}/Keyfactor-Ejbca/Software Files/Software Version"
+  symlink_create: true
+  dependencies:
+    - mariadb
+    - mariadb-backup
+    - mariadb-common
+    - mariadb-server
+    - mariadb-server-galera
+    - python3-PyMySQL
+  user: "{{ kf_ejbca_user }}"
+  group: "{{ kf_ejbca_group }}"
+
+# Apache Ant
+kf_ant_user: root
+kf_ant_group: root
+kf_ant_home: "{{ app_root_dir }}/apache-ant"
+kf_ant_version: 1.10.14
+kf_ant_software:
+  name: ant
+  home: "{{ kf_ant_home }}"
+  path: "{{ app_root_dir }}/apache-ant-{{ kf_ant_version }}"
+  filename: apache-ant-{{ kf_ant_version }}-bin.tar.gz
+  source_dir: /opt/media/software-dna/Keyfactor-Ejbca/Software Files/Software Version
+  symlink_create: true
+  symlink: 
+    src: "{{ app_root_dir }}/apache-ant-{{ kf_ant_version }}/bin/ant"
+    dest: /usr/bin/ant
+
+# JBoss
+jboss_user: "{{ kf_user }}"
+jboss_group: "{{ kf_group }}"
+jboss_home: "{{ app_root_dir }}/jboss"
+jboss_name: jboss-eap-{{ jboss_version }}
+jboss_java_xms: 2048m
+jboss_java_xmx: 2048m
+jboss_dh_size: 3072
+jboss_remove_dirs:
+  - docs
+  - domain
+  - welcome-content
+jboss_version: 7.4
+jboss_software:
+  name: jboss
+  home: "{{ jboss_home }}"
+  path: "{{ app_root_dir }}/jboss-eap-{{ jboss_version }}"
+  dir_mode: '0750'
+  filename: jboss-eap-7.4.0.zip
+  update_zip_file: jboss-eap-7.4.16-patch.zip
+  path_version: JBoss EAP 7.4.16.GA
+  source_dir: /opt/media/software-dna/JBoss
+  symlink_create: true
+  dependencies:
+    - java-11-openjdk-headless.x86_64 
+    - nss-tools
+  user: "{{ jboss_user }}"
+  group: "{{ jboss_group }}"
+
+# JDBC
+kf_jdbc_driver: mariadb-java-client.jar
+kf_jdbc_driver_source: "{{ media_dir }}/Keyfactor-Ejbca/Software Files/Software Version/mariadb-java-client-3.0.8.jar"
+
+# JBoss credential store
+kf_java_home: /usr/lib/jvm/java
+kf_jboss_pass_file: /usr/local/bin/wildfly
+kf_jboss_credentialstore: FipsCredentialStore
+kf_jboss_credentialstore_path: "{{ jboss_home }}/standalone/configuration/keystore"
+kf_jboss_credentialstore_file: "{{ jboss_home }}/standalone/configuration/keystore/jboss.jceks"
+kf_vault_nssdb_pass: ejbca
+kf_vault_db_pass: "{{ mariadb_databases.ejbca.password }}"
+kf_db_reference: dbPassword
+
+# HTTPD
+kf_httpd_firewall_services: 
+  - https
+kf_https_config:
+  tls:
+    public: 
+      file: "{{ ansible_fqdn }}.pem"
+      path: /etc/pki/tls/certs/{{ ansible_fqdn }}.crt
+    private: 
+      file: "{{ ansible_fqdn }}-Key.pem"
+      path: /etc/pki/tls/private/{{ ansible_fqdn }}.key
+    chain:
+      file: "{{ ansible_fqdn }}-CA.pem"
+      path: /etc/pki/tls/certs/managementca-chain.crt
+    ca-trust:
+      file: "{{ ansible_fqdn }}-CA.pem"
+      path: /etc/pki/ca-trust/source/anchors/{{ ansible_fqdn }}-CA.crt
+      owner: root
+      group: root
+  conf:
+    logrotate:
+      src: httpd.j2
+      dest: /etc/logrotate.d/httpd
+    httpd:
+      src: httpd.conf.j2
+      dest: /etc/httpd/conf/httpd.conf
+    ssl:
+      src: ssl.conf.j2
+      dest: /etc/httpd/conf.d/ssl.conf
+  modules:
+    - welcome.conf
+    - 00-base.conf
+    - 00-dav.conf
+    - 00-lua.conf
+    - 00-mpm.conf
+    - 00-proxy.conf
+    - 00-systemd.conf
+    - 00-ssl.conf
+    - 10-proxy_h2.conf
+    - 10-h2.conf
+    - 01-cgi.conf
+
+# HSM
+hsm_user: "{{ kf_user }}"
+hsm_group: "{{ kf_user }}"
+hsm_driver_path: /usr/lib64/libsofthsm2.so
+
+# Certificate Authorities
+kf_cas_policy: 2.16.840.1.101.3.2.1.48.1
+
+#kf_cas_root: f-TLSRoot1
+kf_cas_root: IT-Root-CA
+kf_cas_root_pem: "{{ kf_cas_root }}.pem"
+
+kf_cas_active:
+  - "{{ kf_cas_mgmt }}"
+  - "{{ kf_cas_sub }}"
+
+kf_cas_mgmt:
+  name: NewManagementCA
+  dn: CN=NewManagementCA,OU=PKI-Lab,O=U.S. Government,C=US
+  cdp: "http://{{ ansible_fqdn }}/crls/managementca.crl"
+  profile: MgmtCACertProfile
+  token: "{{ kf_token_name }}"
+  ca_keys:
+    defaultkey: "{{ ansible_hostname }}-MgmtDefaultKey001"
+    certsignkey: "{{ ansible_hostname }}-MgmtSignKey001"
+    crlsignkey: "{{ ansible_hostname }}-MgmtSignKey001"
+    keyenckey: "{{ ansible_hostname }}-MgmtDefaultKey001"
+    testkey: "{{ ansible_hostname }}-MgmtTestKey"
+
+kf_cas_sub:
+  name: l-TLSISSUER4
+  dn: CN=l-TLSISSUER4,OU=PKI-Lab,O=U.S. Government,C=US
+  externalcachain: "{{ kf_ejbca_home }}/certificates/{{ kf_cas_root }}.pem"
+  crl_expiry_period: 10d
+  crl_issue_interval: 12h
+  crl_overlap: 0h
+  ocsp_service_uri: http://{{ ansible_fqdn }}:8080/ejbca/publicweb/status/ocsp
+  token: "{{ kf_token_name }}"
+  ca_keys:
+    defaultkey: "{{ ansible_hostname }}-l-TLSISSUER5DefaultKey001"
+    certsignkey: "{{ ansible_hostname }}-l-TLSISSUER5SignKey001"
+    crlsignkey: "{{ ansible_hostname }}-l-TLSISSUER5SignKey001"
+
+# Keyfactor EJBCA Properties
+# cesecore
+kf_properties_cesecore_allow_external_dynamic_configuration: true
+kf_properties_cesecore_password_encryption_key: "{{ kf_vault_password_encryption_key|default('') }}"
+kf_properties_cesecore_ca_serialnumberoctetsize: 20
+
+# database
+kf_properties_database_jndi_name: ejbcads
+kf_properties_database_use_separate_certificate_table: true
+
+# ejbca
+kf_properties_ejbca_cli_default_username: ejbca
+kf_properties_ejbca_cli_default_password: "{{ kf_vault_cli_defaultpassword|default('ejbca') }}"
+
+# Configdump
+kf_configdump:
+  stage_one:
+    base: "{{ kf_ejbca_home }}/stage_one"
+    dirs:
+      certification-authorities:
+        - ca-MgmtCA.yaml.j2
+        - ca-SubCA.yaml.j2
+      certificate-profiles:
+        - cp-AdminEndEntity.yaml.j2
+        - cp-MgmtCa.yaml.j2
+        - cp-MgmtPeerClient.yaml.j2
+        - cp-PeerClient.yaml.j2
+        - cp-SubCaPeerClient.yaml.j2
+        - cp-TlsServer.yaml.j2
+      end-entity-profiles:
+        - eep-AdminEndEntity.yaml.j2
+        - eep-MgmtPeerClient.yaml.j2
+        - eep-PeerClient.yaml.j2
+        - eep-SubCaPeerClient.yaml.j2
+        - eep-TlsServer.yaml.j2
+      ocsp-configuration:
+        - ocsp-Configuration.yaml.j2
+      services:
+        - svc-CrlUpdater.yaml.j2
+        - svc-HsmKeepAlive.yaml.j2
+      admin-roles:
+        - role-RaPeer.yaml.j2
+  ocsp_config_ca:
+    base: "{{ kf_ejbca_home }}/ocspconfig"
+    dirs:
+      services:
+        - svc-OcspResponsePresigner.yaml.j2
+      ocsp-configuration:
+        - ocsp-Configuration.yaml.j2
+  config_va:
+    base: "{{ kf_ejbca_home }}/configva"
+    dirs:
+      ocsp-configuration:
+        - ocsp-Configuration.yaml.j2
+      admin-roles:
+        - role-CaPeer.yaml.j2
+      available-protocols:
+        - protocols-repeater.yaml.j2
+  config_ra:
+    base: "{{ kf_ejbca_home }}/configra"
+    dirs:
+      admin-roles:
+        - role-CaPeer.yaml.j2
+      available-protocols:
+        - protocols-ra.yaml.j2
+
+# peering
+kf_peering_ca_role: CA-Peers
+kf_peering_ra_role: RA-Peers
+kf_peering_remote_auth:
+  name: "{{ ansible_hostname }}-RemoteAuthKeyBinding"
+  dn: CN={{ ansible_fqdn }},OU={{ kf_org_unit }},O={{ kf_org }}, C=US
+  password: "{{ kf_vault_tmppw|default('foo123') }}"
+  caname: "{{ kf_cas_mgmt.name }}"
+  certprofile: MgmtPeerClient
+  eeprofile: MgmtPeerClientEEProfile
+  crypto_token: "{{ kf_token_name }}"
+  alias: "{{ ansible_hostname }}-PeerClientAuth"
+  keyspec: 3072
+  sigalg: SHA384withRSA
+
+# ejbca administrators
+kf_superadmin:
+  cn: Superman-{{ ansible_hostname }}
+  dn: CN=Superman-{{ ansible_hostname }},OU={{ kf_org_unit }},O={{ kf_org }},C=US
+  password: "{{ kf_vault_superadminpassword|default('foo123') }}"
+  role: Super Administrator Role
+  caname: "{{ kf_cas_mgmt.name }}"
+  token: P12
+
+# services
+kf_service_presigner:
+  name: OcspResponsePresigner
+  time_before: 30
+  time_unit: MINUTES
+  periodical_value: 2
+  periodical_unit: MINUTES

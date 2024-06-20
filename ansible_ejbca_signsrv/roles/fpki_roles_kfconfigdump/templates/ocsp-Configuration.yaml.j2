@@ -1,0 +1,16 @@
+Object Type: OCSP Configuration
+Version: 1
+Name: OCSP
+Default Responder: null
+Responder ID Type for CAs: KeyHash
+Nonce extension in OCSP replies from CAs enabled: true
+OCSP signing cache update enabled: false
+OCSP explicit no cache unauthorized responses enabled: false
+Audit Logging Enabled: false
+Audit Log Pattern: \$\{(.+?)\}
+Audit Log Values: SESSION_ID:${SESSION_ID};LOG ID:${LOG_ID};"${LOG_TIME}";TIME TO
+  PROCESS:${REPLY_TIME};\nOCSP REQUEST:\n"${OCSPREQUEST}";\nOCSP RESPONSE:\n"${OCSPRESPONSE}";\nSTATUS:${STATUS}
+Transaction Logging Enabled: false
+Transaction Log Pattern: \$\{(.+?)\}
+Transaction Log Values: ${SESSION_ID};${LOG_ID};${STATUS};${REQ_NAME}"${CLIENT_IP}";"${SIGN_ISSUER_NAME_DN}";"${SIGN_SUBJECT_NAME}";${SIGN_SERIAL_NO};"${LOG_TIME}";${REPLY_TIME};${NUM_CERT_ID};0;0;0;0;0;0;0;"${ISSUER_NAME_DN}";${ISSUER_NAME_HASH};${ISSUER_KEY};"${OCSP_CERT_ISSUER_NAME_DN}";${DIGEST_ALGOR};${SERIAL_NOHEX};${CERT_STATUS};${CERT_PROFILE_ID};${FORWARDED_FOR}
+OCSP Logging Date Format: yyyy-MM-dd HH:mm:ss.SSSZ

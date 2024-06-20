@@ -1,0 +1,67 @@
+---
+
+- name: Find existing {{ item.cn }} end entity
+  register: find_end_entity
+  failed_when:
+    - find_end_entity.rc >= 1
+    - not find_end_entity.stdout is search('does not exist')
+  changed_when:
+    - find_end_entity.rc == 0
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh ra findendentity 
+    --username {{ item.cn }}
+
+- name: Add {{ item.cn }} end entity
+  when: 
+    - not find_end_entity.changed
+  register: create_end_entity
+  failed_when:
+    - create_end_entity.rc >= 1
+    - not create_end_entity.stdout is search('already exists in the database') # return ok if end entity already exists
+  changed_when:
+    - create_end_entity.stdout is search('has been added') # change if end entity successfully added
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh ra addendentity 
+    --username "{{ item.cn }}" 
+    --dn "{{ item.dn }}" 
+    --caname "{{ item.caname|default(kf_cas.mgmt.name) }}"
+    --token "{{ item.token|default('PEM') }}" 
+    --password "{{ kf_vault_tmppw|default('foo123') }}"
+    --certprofile "{{ item.certprofile|default('ENDUSER') }}"
+    --eeprofile "{{ item.eeprofile|default('EMPTY') }}"
+    --type 1 
+    
+- name: Change existing {{ item.cn }} end entity status to NEW so a new certificate can be enrolled
+  when:
+    - endentity_reset|default(false)
+    - find_end_entity.stdout is search("Status\:\ 40")
+  register: setstatus_end_entity
+  changed_when:
+    - "'New status for end entity' in setstatus_end_entity.stdout"
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh ra setendentitystatus
+    --username "{{ item.cn }}"
+    -S 10
+
+- name: Create certificate if end entity was just created, or status is NEW(10)
+  when: 
+    - create_end_entity.changed or
+      setstatus_end_entity.changed or
+      find_end_entity.stdout is search("Status\:\ 10")
+  block:
+
+    - name: Clear End Entity password 
+      register: clear_end_entity_pass
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh ra setclearpwd 
+        --username "{{ item.cn }}"
+        --password "{{ item.password }}"
+
+    - name: Create {{ item.cn }} certificate and private key using the batch utility
+      failed_when:
+        - batch_end_entity is search('Cannot batchmake')
+      register: batch_end_entity
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh batch 
+        --username "{{ item.cn }}"
+        -dir /opt/ejbca-custom/p12

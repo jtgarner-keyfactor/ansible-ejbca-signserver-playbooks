@@ -1,0 +1,7 @@
+---
+# handlers file for primekeyprep
+
+- name: Restart jboss
+  systemd:
+    name: jboss-eap-rhel.service
+    state: restarted

@@ -1,0 +1,4 @@
+---
+# defaults file for fpki_roles_kfpeerconnector
+
+# All role variables should be set in the fpki_roles_kfvariables role.

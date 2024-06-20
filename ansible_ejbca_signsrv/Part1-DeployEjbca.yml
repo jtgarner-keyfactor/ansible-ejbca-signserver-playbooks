@@ -1,0 +1,123 @@
+---
+
+# ansible-playbook Part1-DeployEjbca.yml
+# ansible-playbook Part1-DeployEjbca.yml --tags deploy-ejbca
+# ansible-playbook Part1-DeployEjbca.yml --tags create-cas
+# ansible-playbook Part1-DeployEjbca.yml --tags config-httpd
+
+- name: Deploy EJBCA on all inventory hosts
+  become: true
+  hosts: ejbca_servers
+  pre_tasks: 
+
+    - name: Include variables role
+      ansible.builtin.import_role:
+        name: fpki_roles_kfvariables
+
+  tasks:
+
+    # TEMP - JAMIE
+    - name: Jamie specific tasks
+      ansible.builtin.include_role:
+        name: temp-jamie
+
+    - name: Install required software and packages
+      vars: 
+        software:
+          - "{{ kf_ejbca_software }}"
+          - "{{ kf_ant_software }}"
+          - "{{ jboss_software }}"
+      ansible.builtin.include_role:
+        name: fpki_roles_kfsoftware
+
+    - name: Deploy MariaDB
+      ansible.builtin.include_role:
+        name: fpki_roles_kfmariadb
+
+    - name: Check to see if Ejbca Ear file has been deployed
+      register: ejbca_ear_check
+      ansible.builtin.stat:
+        path: "{{ jboss_home }}/standalone/deployments/ejbca.ear.deployed"
+
+    - name: Configure JBoss
+      when: not ejbca_ear_check.stat.exists
+      ansible.builtin.include_role:
+        name: fpki_roles_kfjboss
+
+    - name: Configure EJBCA and Build Tools
+      ansible.builtin.include_role:
+        name: fpki_roles_kfeprep
+
+  tags: deploy-ejbca
+
+- name: Create Certificate Authorities using first host in group 'certificate_authorities'
+  become: true
+  hosts: certificate_authorities[0]
+  pre_tasks: 
+
+    - name: Include variables role
+      ansible.builtin.import_role:
+        name: fpki_roles_kfvariables
+
+  tasks:
+
+    - name: Create CA Crypto Tokens and Keys using 'ca_keys' dict as include 'key_objects' variable
+      loop:
+        - "{{ kf_cas_mgmt }}"
+        - "{{ kf_cas_sub }}"
+      loop_control:
+        label: "{{ item.name }}"
+      vars:
+        key_objects: "{{ item.ca_keys }}"
+      ansible.builtin.include_role:
+        name: fpki_roles_kfoperations
+        tasks_from: create_crypto_tokens.yml
+
+    - name: Create Certificate Authorities and import initial EJBCA configuration
+      vars:
+        configdump_dict: "{{ kf_configdump.stage_one }}"
+      ansible.builtin.include_role:
+        name: fpki_roles_kfconfigdump
+
+    - name: Verify Certifiate Authorities
+      ansible.builtin.include_role:
+        name: fpki_roles_kfcas
+
+    - name: Convert 'kf_superadmin' dict to list and create Super Administrator end entity and certificate
+      loop: ["{{ kf_superadmin }}"]
+      loop_control:
+        label: "{{ item.cn }}"
+      ansible.builtin.include_role:
+        name: fpki_roles_kfoperations
+        tasks_from: manage_end_entity.yml
+        apply:
+          become_user: "{{ kf_ejbca_user }}"
+
+    - name: Convert 'kf_superadmin' dict to list and add Super Administrator to role
+      loop: ["{{ kf_superadmin }}"]
+      loop_control:
+        label: "{{ item.cn }}"
+      ansible.builtin.include_role:
+        name: fpki_roles_kfoperations
+        tasks_from: add_to_role.yml
+        apply:
+          become_user: "{{ kf_ejbca_user }}"
+
+    - name: Transfer Super Administrator keystore to Ansible Controller
+      ansible.builtin.fetch:
+        src: "/opt/ejbca-custom/p12/{{ kf_superadmin.cn }}.p12"
+        dest: "{{ kf_remote_src_dir }}/"
+        flat: true
+
+  tags: create-cas
+
+- name: Configure Apache 
+  become: true
+  hosts: ejbca_servers
+  tasks:
+
+    - name: Configure Apache TLS
+      ansible.builtin.include_role:
+        name: fpki_roles_kfhttpd
+
+  tags: config-httpd

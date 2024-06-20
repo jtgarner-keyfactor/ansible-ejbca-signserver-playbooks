@@ -1,0 +1,7 @@
+---
+# handlers file for fpki_roles_kfpeerconnector
+- name: Clean up peerconfig
+  when: "'certificate_authority' in group_names"
+  ansible.builtin.file:
+    path: "{{ peer_deployment_folder }}"
+    state: absent

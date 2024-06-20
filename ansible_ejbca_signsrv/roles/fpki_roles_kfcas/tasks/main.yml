@@ -1,0 +1,35 @@
+---
+# tasks file for fpki_roles_kfmgmtca
+
+- name: Create certificate and csr folders if they dont already exist
+  loop:
+    - "{{ kf_ejbca_home }}/certificates"
+    - "{{ kf_ejbca_home }}/csr"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+    state: directory
+    mode: '0770'
+
+- name: Import Root CA Certificate
+  include_tasks: import_root_ca.yml
+
+- name: Get current CAs
+  register: current_cas
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh ca listcas
+
+- name: Fail if any of the Certificate Authorities names do not exist in output
+  when: 
+    - not current_cas.stdout is search(item)
+  loop: "{{ cas }}"
+  vars:
+    cas:
+      - "{{ kf_cas_root }}"
+      - "{{ kf_cas_mgmt.name }}"
+      - "{{ kf_cas_sub.name }}"
+  loop_control:
+    label: "{{ item }}"
+  ansible.builtin.fail:
+    msg: "{{ item }} was not created during the configdump import or the external CA certificate was not imported successfully."

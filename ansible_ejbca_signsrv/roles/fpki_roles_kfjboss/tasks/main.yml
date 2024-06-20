@@ -1,0 +1,112 @@
+---
+# task file for configuring JBoss on RHEL 8
+
+- name: Configure RESTEasy-Crypto for Bouncy Castle Conflict
+  ansible.builtin.lineinfile:
+    path: "{{ jboss_home }}/modules/system/layers/base/org/jboss/as/jaxrs/main/module.xml" 
+    regexp: '.*?org\.jboss\.resteasy\.resteasy-crypto.*?'
+    line: '<!--module name="org.jboss.resteasy.resteasy-crypto" optional="true"/-->'
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+
+- name: Remove RESTEasy-Crypto for Bouncy Castle Conflict 
+  ansible.builtin.file:
+    path: "{{ jboss_home }}/modules/system/layers/base/org/jboss/resteasy/resteasy-crypto"
+    state: absent
+
+- name: Copy JBoss configuration file
+  ansible.builtin.template:
+    src: jboss-eap.conf.j2
+    dest: /etc/default/jboss-eap.conf
+    owner: root
+    group: "{{ jboss_user }}"
+    mode: '0640'
+
+- name: Copy JBoss startup script to /etc/init.d
+  ansible.builtin.copy:
+    src: "/opt/{{ jboss_name }}/bin/init.d/jboss-eap-rhel.sh"
+    dest: /etc/init.d/jboss-eap-rhel.sh
+    owner: root
+    group: "{{ jboss_user }}"
+    mode: '0750'
+    remote_src: true
+  register: startup
+
+- name: Set SELinux contexts on jboss-eap-rhel.sh startup file
+  when: startup.changed
+  ansible.builtin.command: restorecon -irv /etc/init.d/jboss-eap-rhel.sh   
+
+- name: Copy JBoss standalone.conf file
+  ansible.builtin.template: 
+    src: standalone.conf.j2 
+    dest: "{{ jboss_home }}/bin/standalone.conf"
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    mode: '0640'
+
+- name: Add java.security configuration file
+  ansible.builtin.template:
+    src: java_security.j2
+    dest: "{{ jboss_home }}/bin/java.security"
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    mode: '0644'
+
+- name: Add nss.fips configuration file
+  ansible.builtin.copy:
+    src: nss.fips.cfg
+    dest: "{{ jboss_home }}/bin/nss.fips.cfg"
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+    mode: '0644'
+
+- name: Enable the JBoss service
+  ansible.builtin.service:
+    name: jboss-eap-rhel.sh
+    state: stopped
+    enabled: true
+    
+- name: find script files
+  ansible.builtin.find:
+    path: "{{ jboss_home }}"
+    file_type: file
+    recurse: yes
+    patterns: "*.sh"
+  register: find_shell
+
+- name: Set permissions to 750 for script files
+  loop: "{{ find_shell.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    mode: 0750
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+
+- name: Find text, conf, and properties files in {{ jboss_home }}
+  ansible.builtin.find:
+    path: "{{ jboss_home }}"
+    file_type: file
+    recurse: true
+    patterns: "*.text,*.conf,*.properties"
+  register: find_files
+
+- name: Set permissions to 640 for text, conf, and properties files
+  loop: "{{ find_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    mode: '0640'
+    owner: "{{ jboss_user }}"
+    group: "{{ jboss_group }}"
+
+- name: Set permissions to 750 for JBoss directories
+  ansible.builtin.command: find "{{ jboss_home }}" -type d -name *.xml -exec chmod 750 {} \;
+
+- name: Set permissions for .xml files
+  ansible.builtin.command: find "{{ jboss_home }}" -type f -name *.xml -exec chmod 640 {} \;
+
+- name: Set permissions for .jar files
+  ansible.builtin.command: find "{{ jboss_home }}" -type f -name *.jar -exec chmod 640 {} \; 

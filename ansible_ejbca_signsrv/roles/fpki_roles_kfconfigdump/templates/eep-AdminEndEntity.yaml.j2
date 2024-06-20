@@ -1,0 +1,43 @@
+Object Type: End Entity Profile
+Version: 1
+Name: AdminEndEntity
+Max Failed Logins Modifiable: false
+Description: ''
+Default CA: {{ kf_cas_mgmt.name }}
+Available CAs:
+- {{ kf_cas_mgmt.name }}
+Default Certificate Profile: AdminEndEntity
+Available Certificate Profiles:
+- AdminEndEntity
+Default Token Type: User Generated
+Available Token Types:
+- User Generated
+- PKCS12 File
+- JKS File
+- PEM File
+Issuance Revocation Reason Modifiable: false
+CA Browser Forum Organization Identifier Modifiable: false
+Subject DN:
+  BUSINESSCATEGORY:
+  - Required: false
+  C:
+  - Required: false
+  CN:
+  - Required: true
+  - Required: false
+  DC:
+  - Required: false
+  - Required: false
+  - Required: false
+  - Required: false
+  - Required: false
+  DN:
+  - Required: false
+  O:
+  - Required: false
+  - Required: false
+  - Required: false
+  OU:
+  - Required: false
+  - Required: false
+  - Required: false

@@ -1,0 +1,15 @@
+---
+
+- name: Add {{ item.cn }} to {{ item.role }} role using WITH_COMMONAME
+  register: add_role_member
+  when:
+    - item.match_with|default('WITH_COMMONNAME') == 'WITH_COMMONNAME'
+  failed_when:
+    - add_role_member.rc >= 1
+    - not add_role_member.stdout is search('was not added because it already exists')
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh roles addrolemember 
+    --role "{{ item.role }}"
+    --with "{{ item.match_with|default('WITH_COMMONNAME') }}"  
+    --caname "{{ item.caname }}"
+    --value "{{ item.cn }}" 

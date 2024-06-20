@@ -1,0 +1,99 @@
+---
+
+- name: Add RA Peers to CA
+  block:
+
+    - name: Get Apache TLS certificate serial numbers from Apache public certificate file path on Peer host
+      register: cert_serial_number
+      ansible.builtin.command: >
+        openssl x509 -noout -serial -in {{ httpd.tls.public.path }}
+
+    - name: Store serial number from {{ item }} in fact to use on CA host
+      ansible.builtin.set_fact: 
+        cert_serial_number: "{{ cert_serial_number.stdout.split('=')[1] }}"
+
+    - name: Create RA Peering role on CA host
+      when: inventory_hostname in groups['certificate_authorities'][0] 
+      register: create_peer_role
+      failed_when:
+        - create_peer_role.rc >= 1
+        - not create_peer_role is search('already exists')
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh roles addrole
+        --role "{{ kf_peering.ra_role }}"
+
+    - name: Add RA peer TLS certificate to RA peering role on CA host using loop item hostvars ['cert_serial_number']
+      when: inventory_hostname in groups['certificate_authorities'][0] 
+      register: add_peer_member
+      failed_when:
+        - add_peer_member.rc >= 1
+        - not add_peer_member is search('was not added because it already exists')
+      loop: "{{ groups['peer_servers'] }}"
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh roles addrolemember
+        --role "{{ kf_peering.ra_role }}"
+        --caname "{{ kf_cas_mgmt.name }}"
+        --with WITH_SERIALNUMBER
+        --value "{{ hostvars[item]['cert_serial_number'] }}"
+        --description {{ item }}
+
+- name: Add CA Peer to RA/VA Nodes
+  block:
+
+    - name: Get Peering Key Binding serial number
+      when: inventory_hostname in groups['certificate_authorities'][0] 
+      block:
+
+        - name: Export Peering keybinding certificate to local directory for dumping with Openssl
+          register: listkeybindings
+          ansible.builtin.command: >
+            {{ kf_ejbca_home }}/bin/ejbca.sh keybind exportcert
+            --name "{{ kf_keybind.peering.name }}"
+            -f "{{ kf_ejbca_home }}/certificates/{{ kf_keybind.peering.name }}"
+
+        - name: Get serial number from exported certificate
+          register: cert_serial_number
+          ansible.builtin.command: >
+            openssl x509 -noout -serial -in "{{ kf_ejbca_home }}/certificates/{{ kf_keybind.peering.name }}"
+
+        - name: Store serial number and inventory_hostname for CA host fact to use on Peering hosts
+          ansible.builtin.set_fact: 
+            cert_serial_number: "{{ cert_serial_number.stdout.split('=')[1] }}"
+
+    - name: Create and add CA peering certificate
+      when: inventory_hostname in groups['peer_servers']
+      block:
+
+        - name: Create CA Peering role on RA and VA hosts
+          register: create_peer_role
+          failed_when:
+            - create_peer_role.rc >= 1
+            - not create_peer_role is search('already exists')
+          loop: "{{ groups['peer_servers'] }}"
+          ansible.builtin.command: >
+            {{ kf_ejbca_home }}/bin/ejbca.sh roles addrole
+            --role "{{ kf_peering.ca_role }}"
+
+        - name: Add CA peer TLS certificate using first CA host in 'certificate_authorities' to CA peering role on RA and VA host
+          register: add_peer_member
+          failed_when:
+            - add_peer_member.rc >= 1
+            - not add_peer_member is search('was not added because it already exists')
+          loop: "{{ groups['peer_servers'] }}"
+          ansible.builtin.command: >
+            {{ kf_ejbca_home }}/bin/ejbca.sh roles addrolemember
+            --role "{{ kf_peering.ca_role }}"
+            --caname "{{ kf_cas_mgmt.name }}"
+            --with WITH_SERIALNUMBER
+            --value "{{ hostvars[groups['certificate_authorities'][0]]['cert_serial_number'] }}"
+            --description {{ item }}
+
+        - name: Add Super Administrator to role on Peer Servers
+          loop: ["{{ kf_entities.superadmin }}"]
+          loop_control:
+            label: "{{ item.cn }}"
+          ansible.builtin.include_role:
+            name: fpki_roles_kfoperations
+            tasks_from: add_to_role.yml
+
+

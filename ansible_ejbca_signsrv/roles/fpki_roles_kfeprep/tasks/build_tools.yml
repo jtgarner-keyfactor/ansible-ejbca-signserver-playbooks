@@ -1,0 +1,42 @@
+---
+
+- name: Check if tools have already been built
+  register: ejbca_tools_check
+  ansible.builtin.find:
+    paths: "{{ kf_ejbca_home }}/dist"
+    recurse: true
+
+- name: Set tool build conditions based on cli path existence and build switches
+  ansible.builtin.set_fact:
+    build_p11ng: "{{ not ejbca_tools_check.files is search(path_p11ng) and ejbca_p11ng_build|default(true) }}"
+    build_configdump: "{{ not ejbca_tools_check.files is search(path_configdump) and ejbca_configdump_build|default(true) }}"
+    build_ctb: "{{ not ejbca_tools_check.files is search(path_ctb) and ejbca_ctb_build|default(true) }}"
+  vars:
+    path_p11ng: "{{ kf_ejbca_home }}/dist/p11ng-cli/p11ng-cli.sh"
+    path_configdump: "{{ kf_ejbca_home }}/dist/configdump/configdump.sh"
+    path_ctb: "{{ kf_ejbca_home }}/dist/clientToolBox/ejbcaClientToolBox.sh"
+
+- name: Build tools if one of them does not exist
+  when:
+    - not build_p11ng or
+      not build_configdump or
+      not build_ctb
+  block:
+
+  - name: Build p11ng-cli, configdump, and clientToolBox if the path to their CLI do not exist
+    become_user: "{{ kf_ejbca_user }}"
+    args:
+      chdir: "{{ kf_ejbca_home }}"
+    register: ejbca_build_tools
+    ansible.builtin.command: >
+      ant
+      {%- if build_p11ng %} p11ng-cli {% endif -%}
+      {%- if build_configdump %} configdump {% endif -%}
+      {%- if build_ctb %} clientToolBox {% endif -%}
+
+- name: Copy IHashGenerator.class to the clientToolBox lib directory
+  ansible.builtin.copy: 
+    src: IHashGenerator.class
+    dest: "{{ kf_ejbca_home }}/dist/clientToolBox/lib"
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"

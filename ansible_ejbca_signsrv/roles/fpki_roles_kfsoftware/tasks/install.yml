@@ -1,0 +1,55 @@
+---
+
+- name: Create '{{ item.name }}' group
+  when: item.group is defined
+  ansible.builtin.group:
+    name: "{{ item.group }}"
+    state: present
+
+- name: Create '{{ item.name }}' user and home directory
+  when: 
+    - item.user is defined
+    - item.group is defined
+  ansible.builtin.user:
+    name: "{{ item.user }}"
+    group: "{{ item.group }}"
+    createhome: "{{ item.create_home|default(false) }}"
+    state: present
+  
+- name: Unarchive '{{ item.name }}' binary
+  ansible.builtin.unarchive:
+    src: "{{ item.source_dir }}/{{ item.filename }}"
+    dest: "{{ app_root_dir }}"
+    owner: "{{ item.user|default('root') }}"
+    group: "{{ item.group|default('root') }}"
+    remote_src: true
+
+- name: Install missing '{{ item.name }}' package dependencies when application list is not empty
+  when: 
+    - item.dependencies is defined
+    - item.dependencies|length > 0
+  loop: "{{ item.dependencies }}"
+  loop_control:
+    loop_var: pkg
+    label: "{{ pkg }}"
+  ansible.builtin.package:
+    name: "{{ pkg }}"
+    state: present
+
+- name: Create '{{ item.name }}' symlink using default application paths when custom symlink dictionary not defined
+  when: 
+    - item.symlink_create|default(false)
+    - item.symlink is not defined
+  ansible.builtin.file:
+    src: "{{ item.path }}"
+    dest: "{{ item.home }}"
+    state: link
+
+- name: Create '{{ item.name }}' symlink using custom symlink paths
+  when: 
+    - item.symlink_create|default(false)
+    - item.symlink is defined
+  ansible.builtin.file:
+    src: "{{ item.symlink.src|default(item.path) }}"
+    dest: "{{ item.symlink.dest|default(item.home) }}"
+    state: link

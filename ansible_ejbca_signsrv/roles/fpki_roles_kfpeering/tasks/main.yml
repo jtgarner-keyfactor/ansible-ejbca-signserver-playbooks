@@ -1,0 +1,56 @@
+---
+
+- name: Configure Remote Peer Systems
+  when: inventory_hostname in groups['peer_servers']
+  block:
+
+    - name: Configure Peer system global settings
+      register: global_peer_config_vas
+      failed_when:
+        - not global_peer_config_vas.stdout is search('Disabled outgoing peer connections')
+        - not global_peer_config_vas.stdout is search('Enabled incoming peer connections')
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh peer config
+        --enable-in 'true'
+        --enable-out 'false'
+
+    - name: Get list of imported External Certficate Authority on each Peer System
+      register: current_cas
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh ca listcas 
+
+    - name: Import CA certificate on Peer System when CA not included in 'listcas' output
+      loop: "{{ kf_cas }}"
+      loop_control:
+        label: "{{ item.name }}"
+      ansible.builtin.include_role:
+        name: fpki_roles_kfoperations
+        tasks_from: import_ca.yml
+
+- name: Configure Peering on CA Node
+  when: inventory_hostname in groups['certificate_authorities'][0] 
+  block:
+
+    - name: Configure CA global peer settings
+      when: inventory_hostname in groups['certificate_authorities'][0]
+      register: global_peer_config_cas
+      failed_when:
+        - not global_peer_config_cas.stdout is search('Disabled incoming peer connections')
+        - not global_peer_config_cas.stdout is search('Enabled outgoing peer connections')
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh peer config
+        --enable-in 'false'
+        --enable-out 'true'
+
+    - name: Get existing peer systems
+      register: listpeers
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh peer list
+
+    - name: Create peer connections
+      when: not listpeers.stdout is search(item)
+      loop: "{{ groups['peer_servers'] }}"
+      include_tasks: create_peer.yml
+
+- name: Configure peering roles and access rules
+  include_tasks: roles.yml

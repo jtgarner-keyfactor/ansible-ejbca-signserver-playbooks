@@ -1,0 +1,21 @@
+---
+
+- name: Transfer External Root CA certificate Ansible Controller to EJBCA CA Host
+  ansible.builtin.copy:
+    src: "{{ kf_remote_src_dir }}/{{ kf_cas_root_pem }}"
+    dest: "{{ kf_ejbca_home }}/certificates/{{ kf_cas_root_pem }}"
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+    mode: '0640'
+
+- name: Import {{ kf_cas_root }}
+  register: import_root_ca
+  changed_when: 
+    - import_root_ca.rc == 0
+  failed_when:
+    - import_root_ca.rc >= 1
+    - not import_root_ca.stdout is search('The CA certificate chain is already imported')
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh ca importcacert
+    --caname {{ kf_cas_root }}
+    -f "{{ kf_ejbca_home }}/certificates/{{ kf_cas_root_pem }}"

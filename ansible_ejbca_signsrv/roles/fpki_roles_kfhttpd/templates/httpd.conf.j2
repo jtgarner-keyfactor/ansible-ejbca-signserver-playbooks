@@ -1,0 +1,187 @@
+# Ansible Managed
+#
+#
+# This is a highly reduced Apache server configuration file.  It contains only
+# the directives used for fpkima web servers.  Comments are stripped
+# out.  Please refer to the apache docs at apache.org if you need more data.
+#
+
+### Section 1: Global Environment
+#
+
+ServerTokens Prod
+
+ServerRoot "/etc/httpd"
+
+PidFile run/httpd.pid
+
+Timeout 10
+
+##  The following several lines are contradictory.  If KeepAlive is off, then 
+##  the next two directives have no purpose.  The latest CIS STIG recommends
+##  that KeepAlive be set to on.  Then the requests and timeout would have meaning.
+
+KeepAlive On
+
+MaxKeepAliveRequests 100
+
+KeepAliveTimeout 10
+
+AcceptFilter http data
+
+LimitRequestBody 10000 
+
+LimitRequestFields 40 
+
+LimitRequestFieldSize 8190 
+
+LimitRequestLine 500
+
+Listen 80
+
+<IfModule mpm_event_module>
+	StartServers         5
+	MinSpareServers      5
+	MaxSpareServers	    10
+	MaxClients         256
+	MinSpareThreads     25
+	MaxSpareThreads     75
+	ThreadsPerChild     25
+	MaxRequestsPerChild  0
+</IfModule>
+
+## Listen 8080
+
+SetEnvIf Range (?:,.*?){5,5} bad-range=1
+RequestHeader unset Range env=bad-range
+
+RequestHeader unset Request-Range
+
+CustomLog logs/range-CVE-2011-3192.log common env=bad-range
+
+Include conf.modules.d/*.conf
+Include conf.d/ssl.conf
+
+User apache
+Group apache
+
+### Section 2: 'Main' server configuration
+#
+
+ServerAdmin fpki-toc@gsa.gov
+
+ServerName "{{ ansible_fqdn }}:80"
+
+UseCanonicalName Off
+
+DocumentRoot "/var/www/"
+
+#
+# Deny access to the entirety of your server's filesystem. You must
+# explicitly permit access to web content directories in other
+# <Directory> blocks below.
+#
+
+<Directory />
+    Options None
+    AllowOverride None
+    Require all denied
+</Directory>
+
+<Directory "/var/www/">
+  Require all denied
+  <Files "index.html">
+    Require all granted
+  </Files>
+</Directory>
+
+TraceEnable Off
+
+RewriteEngine On 
+RewriteCond %{THE_REQUEST} !HTTP/(0\.9|1\.[01])$ 
+RewriteRule .* - [F]
+
+<FilesMatch "\.(?:c(?:o(?:nf(?:ig)?|m)|s(?:proj|r)?|dx|er|fg|md)|p(?:rinter|ass|db|ol|wd)|v(?:b(?:proj|s)?|sdisco)|a(?:s(?:ax?|cx)|xd)|d(?:bf?|at|ll|os)|i(?:d[acq]|n[ci])|ba(?:[kt]|ckup)|res(?:ources|x)|s(?:h?tm|ql|ys)|l(?:icx|nk|og)|\w{,5}~|webinfo|ht[rw]|xs[dx]|key|mdb|old)$"> 
+Require all denied 
+</FilesMatch>
+
+DirectoryIndex index.html
+
+AccessFileName .htaccess
+
+<Files ~ "^\.ht">
+	Require all denied
+</Files>
+
+TypesConfig /etc/mime.types
+
+HostnameLookups Off
+
+ErrorLog logs/error_log
+
+LogLevel notice
+
+LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+LogFormat "%h %l %u %t \"%r\" %>s %b" common
+LogFormat "%{Referer}i -> %U" referer
+LogFormat "%{User-agent}i" agent
+
+# Don't log requests from the F5
+SetEnvIf Remote_Addr "192\.168\.23\.21" pkirequest
+SetEnvIf Remote_Addr "192\.168\.13\.21" pkirequest
+
+CustomLog logs/access_log combined env=!pkirequest
+CustomLog "| /usr/sbin/rotatelogs /var/log/httpd/access_log 86400" combined
+CustomLog "| /usr/sbin/rotatelogs /var/log/httpd/error_log 86400" combined
+
+ServerSignature Off
+
+AddDefaultCharset UTF-8
+
+Header always append X-Frame-Options DENY
+Header always set X-Content-Type-Options "nosniff"
+Header always set Content-Security-Policy "default-src 'self'; script-src 'none'"
+FileETag MTime Size
+
+# Turn on Expires and set default to 0
+ExpiresActive On
+ExpiresDefault A0
+
+<IfModule mime_module>
+    TypesConfig /etc/mime.types
+    AddType application/x-compress .Z
+    AddType application/x-gzip .gz .tgz
+    AddType text/html .shtml
+    AddOutputFilter INCLUDES .shtml
+</IfModule>
+
+AddDefaultCharset UTF-8
+
+<IfModule mime_magic_module>
+    MIMEMagicFile conf/magic
+</IfModule>
+
+<IfModule ssl_module>
+SSLRandomSeed startup builtin
+SSLRandomSeed connect builtin
+</IfModule>
+
+# Deal with user agents that deliberately violate open standards
+#
+<IfModule setenvif_module>
+BrowserMatch "MSIE 10.0;" bad_DNT
+</IfModule>
+<IfModule headers_module>
+RequestHeader unset DNT env=bad_DNT
+</IfModule>
+
+# Set up 30 day caching on the index.html file.
+<FilesMatch "index\.html$">
+        ExpiresDefault "modification plus 30 days"
+        Header set Cache-Control "max-age=2628000, s-maxage=2628000, must-revalidate"
+</FilesMatch>
+
+<VirtualHost *:80>
+	DocumentRoot "/var/www/"
+	ServerName repo.pki.gov
+</VirtualHost>

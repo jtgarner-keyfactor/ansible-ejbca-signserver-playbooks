@@ -1,0 +1,146 @@
+---
+
+- name: List existing keybindings
+  register: listkeybindings
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh keybind list
+
+- name: Create dict with existing keybinding properties
+  when: kf_keybind.peering.name in line
+  loop: "{{ listkeybindings.stdout_lines }}"
+  loop_control:
+    loop_var: line
+    label: "stdout_line - {{ ansible_loop.index }}"
+    extended: true # extend to access index for label
+  vars:
+    active: "{% if 'ACTIVE' in line %}true{% else %}false{% endif %}"
+  ansible.builtin.set_fact:
+    keybind_dict: {'name': "{{ kf_keybind.peering.name }}", 'active': "{{ active|bool }}"}
+
+- name: Create Key Binding
+  when: keybind_dict is undefined 
+  block:
+
+  - name: Generate {{ item.name }} key
+    failed_when: 
+      - not generate_key.stdout is search('is in use') # override failure if key already exists
+      - generate_key.rc >= 1
+    changed_when: 
+      - "'Key pair generated successfully' in generate_key.stdout"
+    register: generate_key
+    ansible.builtin.command: >
+      {{ kf_ejbca_home }}/bin/ejbca.sh cryptotoken generatekey
+      --token "{{ item.crypto_token }}"
+      --alias "{{ item.alias }}"
+      --keyspec "{{ item.keyspec|default('3072') }}"
+
+  - name: Create {{ item.name }}
+    ansible.builtin.command: >
+      {{ kf_ejbca_home }}/bin/ejbca.sh keybind create
+      --name "{{ item.name }}"
+      --type "{{ item.type|default('AuthenticationKeyBinding') }}"
+      --token "{{ item.crypto_token }}"
+      --alias "{{ item.alias }}"
+      --sigalg "{{ item.sigalg|default('SHA384withRSA') }}"
+      --status ACTIVE
+      --cert null
+      
+  - name: Update dict with new keybinding properties
+    ansible.builtin.set_fact:
+      keybind_dict: {'name': "{{ item.name }}", 'active': false}
+
+- name: Active key binding if DISABLE
+  when: not keybind_dict.active
+  block:
+
+    - name: Check if a certificate was already saved to {{ kf_ejbca_home }}/certificates
+      when: not keybind_dict.active
+      register: cert_check
+      changed_when: false
+      ansible.builtin.stat:
+        path: "{{ kf_ejbca_home }}/certificates/{{ item.name }}.crt"
+
+    - name: Generate Key Binding certificate
+      when: not cert_check.stat.exists
+      block:
+
+        - name: Create CSR folders
+          loop:
+            - "{{ kf_ejbca_home }}/certificates"
+            - "{{ kf_ejbca_home }}/csr"
+          loop_control:
+            loop_var: dir
+          ansible.builtin.file:
+            path: "{{ dir }}"
+            state: directory
+            owner: "{{ kf_ejbca_user.name }}"
+            group: "{{ kf_ejbca_user.group }}"
+            mode: '0770'
+
+        - name: Generate CSR for {{ item.name }}
+          ansible.builtin.command: >
+            {{ kf_ejbca_home }}/bin/ejbca.sh keybind gencsr 
+            --name "{{ item.name }}"
+            -f "{{ kf_ejbca_home }}/csr/{{ item.name }}.csr"
+
+        - name: Find existing {{ item.name }} end entity
+          register: find_end_entity
+          failed_when:
+            - find_end_entity.rc >= 1
+            - not find_end_entity.stdout is search('does not exist')
+          changed_when:
+            - not find_end_entity.stdout is search('does not exist')
+          ansible.builtin.command: >
+            {{ kf_ejbca_home }}/bin/ejbca.sh ra findendentity 
+            --username {{ item.name }}
+
+        - name: Add {{ item.name }} end entity
+          when: 
+            - not find_end_entity.changed
+          register: create_end_entity
+          failed_when:
+            - create_end_entity.rc >= 1
+            - not create_end_entity.stdout is search('already exists in the database') # return ok if end entity already exists
+          changed_when:
+            - create_end_entity.stdout is search('has been added') # change if end entity successfully added
+          ansible.builtin.command: >
+            {{ kf_ejbca_home }}/bin/ejbca.sh ra addendentity 
+            --username "{{ item.name }}" 
+            --dn "{{ item.dn }}" 
+            --caname "{{ item.caname }}"
+            --type 1 
+            --token "{{ item.token|default('USERGENERATED') }}" 
+            --password "{{ kf_vault_tmppw|default(item.password) }}"
+            --certprofile "{{ item.certprofile }}"
+            --eeprofile "{{ item.eeprofile }}"
+
+        - name: Create the {{ item.name }} key binding certificate
+          when:
+            - create_end_entity.changed or
+              setsstatus_end_entity.changed
+          ansible.builtin.command: >
+            {{ kf_ejbca_home }}/bin/ejbca.sh createcert
+            --username "{{ item.name }}" 
+            --password "{{ kf_vault_tmppw|default(item.password) }}"
+            -c "{{ kf_ejbca_home }}/csr/{{ item.name }}.csr"
+            -f "{{ kf_ejbca_home }}/certificates/{{ item.name }}.crt"
+
+    - name: Import and Activate
+      when: not keybind_dict.active
+      block:
+
+      - name: Import the {{ item.name }} key binding certificate 
+        register: keybind_import
+        ansible.builtin.command: >
+          {{ kf_ejbca_home }}/bin/ejbca.sh keybind import 
+          --name "{{ item.name }}"
+          -f "{{ kf_ejbca_home }}/certificates/{{ item.name }}.crt"
+          
+      - name: Activate {{ item.name }}
+        register: keybind_activate
+        changed_when:
+          - "'was updated' in keybind_activate.stdout"
+        ansible.builtin.command: >
+          {{ kf_ejbca_home }}/bin/ejbca.sh keybind setstatus 
+          --name "{{ item.name }}"
+          -v ACTIVE

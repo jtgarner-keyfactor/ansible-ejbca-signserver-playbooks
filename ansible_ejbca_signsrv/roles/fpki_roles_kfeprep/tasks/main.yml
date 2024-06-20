@@ -1,0 +1,45 @@
+---
+# tasks file for primekeyprep
+
+- name: Check to see if Thales client is installed
+  register: safenetclient
+  changed_when: false
+  ansible.builtin.stat:
+    path: "{{ hsm_driver_path }}"
+
+- name: Configure JBoss and EJBCA
+  block:
+
+    - name: Deploy JBoss standalone.xml
+      ansible.builtin.template:
+        src: standalone.xml.j2
+        dest: "{{ jboss_home }}/standalone/configuration/standalone.xml"
+        owner: "{{ jboss_user }}"
+        group: "{{ jboss_group }}"
+        mode: '0640'
+
+    - name: Start the JBoss server
+      ansible.builtin.systemd:
+        name: jboss-eap-rhel
+        state: restarted
+        enabled: true
+
+    - name: Create application credential store
+      include_tasks: create_credential_store.yml
+
+    - name: Configure EJBCA and Build EAR file
+      include_tasks: configure_ejbca.yml
+
+  when: not ejbca_ear_check.stat.exists|default(false)
+
+- name: Build additional Ejbca tools
+  include_tasks: build_tools.yml
+
+- name: Create DB Protection keys
+  when: safenetclient.stat.exists
+  include_tasks: create_dbprotection_keys.yml
+
+- name: Restart JBoss service to ensure all changes are applied
+  ansible.builtin.systemd:
+    name: jboss-eap-rhel
+    state: restarted

@@ -1,0 +1,31 @@
+---
+
+- name: Create certificate and csr folders if they dont already exist
+  loop:
+    - "{{ kf_ejbca_home }}/certificates"
+    - "{{ kf_ejbca_home }}/csr"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+    state: directory
+    mode: '0770'
+
+- name: Extract list of inventory hostname because {{ groups['certificate_authorities'][0] }} will be the only available hostvars 
+  ansible.builtin.set_fact:
+    ansible_host_fqdns: "{{ ansible_play_hosts|map('extract',hostvars,'ansible_fqdn') }}"
+  run_once: true
+
+- name: Create, or reissue ACTIVE, TLS certificates for each host in 'ansible_host_fqdns' on first {{ groups['certificate_authorities'][0] }}
+  when: inventory_hostname in groups['certificate_authorities'][0]
+  loop: "{{ ansible_host_fqdns }}"
+  vars:
+    end_entity_reset: false
+  include_tasks: create_tls_certs.yml
+  run_once: true
+
+- name: Configure HTTPD on all EJBCA servers
+  include_tasks: configure.yml
+
+
+

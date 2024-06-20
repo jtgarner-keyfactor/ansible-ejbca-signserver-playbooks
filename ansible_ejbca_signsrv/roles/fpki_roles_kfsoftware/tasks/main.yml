@@ -1,0 +1,41 @@
+---
+
+- name: Gather directory filepaths in {{ app_root_dir }}
+  changed_when: true
+  ansible.builtin.find:
+    paths: "{{ app_root_dir }}"
+    file_type: directory
+    recurse: true
+  register: existing_apps_search
+
+- name: Gather installed packages
+  register: package_facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Install required packages for deployment with Ansible
+  when: package_facts is not search(item)
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ required_packages }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: Install software when it doesnt exist in {{ app_root_dir }}
+  when: 
+    - item.path is defined
+    - existing_apps_search.files|map(attribute='path') is not search(item.home)
+  loop: "{{ software }}"
+  loop_control:
+    label: "{{ item.name }}"
+  ansible.builtin.include_tasks:
+    file: install.yml
+
+- name: Copy JDBC Driver to JBoss application directory
+  ansible.builtin.copy:
+    src: "{{ kf_jdbc_driver_source }}"
+    dest: "{{ jboss_home }}/standalone/deployments/{{ kf_jdbc_driver }}"
+    remote_src: true
+    owner: "{{ jboss_user }}"
+    group: "{{  jboss_group }}"

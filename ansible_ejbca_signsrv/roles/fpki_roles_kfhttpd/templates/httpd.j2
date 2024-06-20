@@ -1,0 +1,14 @@
+/var/log/httpd/*log {
+    rotate 60
+    daily
+    missingok
+    notifempty
+    sharedscripts
+    dateext
+    compress
+    compressext -{{ ansible_hostname }}.gz
+    postrotate
+        /bin/systemctl reload httpd.service > /dev/null 2>/dev/null || true
+    endscript
+}
+

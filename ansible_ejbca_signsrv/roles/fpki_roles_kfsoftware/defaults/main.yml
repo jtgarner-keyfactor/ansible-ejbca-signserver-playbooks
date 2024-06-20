@@ -1,0 +1,5 @@
+---
+# defaults file for fkpki_roles_kfsoftware
+# Refer to the README for more information
+
+app_root_dir: /opt

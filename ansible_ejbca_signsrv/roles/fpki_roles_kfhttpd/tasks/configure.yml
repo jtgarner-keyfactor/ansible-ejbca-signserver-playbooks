@@ -1,0 +1,79 @@
+---
+
+- name: Set httpd_can_network_connect flag on and keep it persistent across reboots
+  ansible.posix.seboolean:
+    name: httpd_can_network_connect
+    state: true
+    persistent: true
+
+- name: Customize httpd.service to start after JBoss
+  ansible.builtin.file:
+    path: /etc/systemd/system/httpd.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    
+- name: Template configuration files
+  loop: "{{ kf_https_config.conf|dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  ansible.builtin.template:
+    src: "{{ item.value.src }}"
+    dest: "{{ item.value.dest }}"
+    owner: root
+    group: root
+    mode: '0600' 
+
+- name: Copy index file
+  ansible.builtin.copy:
+    src: index.html
+    dest: /var/www/index.html
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Copy modules
+  notify: Restart httpd
+  loop: "{{ kf_https_config.modules }}"
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/etc/httpd/conf.modules.d/{{ item }}"
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Start and enable firewall
+  ansible.builtin.systemd:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Open firewall service/ports and reload
+  loop: "{{ kf_httpd_firewall_services }}"
+  notify: Reload firewalld
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+
+- name: Transfer TLS certificates from Ansible Controller to EJBCA server Apache directories
+  loop: "{{ kf_https_config.tls|dict2items }}"
+  loop_control:
+    label: "{{ item.value.file }}"
+  ansible.builtin.copy:
+    src: "{{ kf_remote_src_dir }}/{{ item.value.file }}"
+    dest: "{{ item.value.path }}"
+    owner: "{{ item.value.owner|default('apache') }}"
+    group: "{{ item.value.group|default('apache') }}"
+
+- name: Insert CA certificates into Trust Store
+  ansible.builtin.command: >
+    update-ca-trust
+
+- name: Start and enable httpd
+  ansible.builtin.systemd:
+    name: httpd
+    state: started
+    enabled: true

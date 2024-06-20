@@ -1,0 +1,19 @@
+---
+
+- name: Create the database protection key
+  register: database_key_create
+  failed_when: database_key_create.rc > 1
+  become_user: "{{ kf_ejbca_user }}"
+  environment:
+    eprep_ejbca_home: "{{ kf_ejbca_home }}"
+    APPSRV_HOME: "{{ jboss_home }}"
+  no_log: "{{ hide_log_output }}"
+  ansible.builtin.command: >
+    /opt/ejbca/dist/p11ng-cli/p11ng-cli.sh generatekeypair 
+    --lib-file "{{ hsm_driver_path }}" 
+    --slot-ref SLOT_LABEL --slot "{{ kf_partition_name }}" 
+    --alias "{{ kf_dbProtection_key_label }}" 
+    --password "{{ kf_vault_partition_passphrase }}" 
+    --key-spec RSA4096 
+    --key-usage SIGN_ENCRYPT 
+    --verbose

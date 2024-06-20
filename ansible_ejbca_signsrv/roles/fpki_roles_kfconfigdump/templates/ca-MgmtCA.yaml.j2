@@ -1,0 +1,51 @@
+Object Type: Certification Authority
+Version: 2
+Name: {{ kf_cas_mgmt.name }}
+Type of CA: X.509
+Description: {{ kf_cas_mgmt.name }} created using Configdump CLI
+Serial Number Octet Size: 20
+Pre-produce OCSP Responses: false
+Microsoft CA Compatible Mode Used: false
+Store responses on-demand: false
+Certificate Profile: {{ kf_cas_mgmt.profile }}
+Default Certificate Profile: Not used
+Use Append-Only Table: false
+CA Token:
+  Signature Algorithm: SHA384WithRSA
+  Encryption Algorithm: SHA384WithRSA
+  Crypto Token: {{ kf_cas_mgmt.token }}
+  Default Key: {{ kf_cas_mgmt.ca_keys.defaultkey }}
+  Certificate Signing Key: {{ kf_cas_mgmt.ca_keys.certsignkey }}
+  CRL Signing Key: {{ kf_cas_mgmt.ca_keys.crlsignkey }}
+  Key Encryption Key: {{ kf_cas_mgmt.ca_keys.keyenckey }}
+  Test Key: {{ kf_cas_mgmt.ca_keys.testkey }}
+  Key Sequence Format: Numeric
+  Key Sequence: '00000'
+Enforce Unique Public Keys: false
+Enforce key renewal: true
+Enforce Unique DN: false
+User Storage: true
+Certificate Storage: true
+Accept Revocations for Non-Existing Entries: false
+Subject DN: {{ kf_cas_mgmt.dn }}
+Signed By: Self Signed
+Validity: 10y
+Subject Alternative Name: None
+Use UTF-8 in Policy Notice Text: true
+Printable String Encoding in DN: true
+LDAP DN Order: false
+Authority Key Id Used: true
+CRL Number Used: true
+Partitioned CRL Used: false
+CRL Expiration Period: 7d
+CRL Issue Interval: 0m
+CRL Overlap Time: 10m
+Delta CRL Period: 0m
+Generate CRL Upon Revocation: false
+Allow Changing Revocation Reason: false
+Finish User: true
+CA Healthcheck Enabled: true
+Request Processor: null
+Default CRL Distribution Point: {{ kf_cas_mgmt.cdp }}
+Pre-produce OCSP Responses Upon certificate issuance/revocation: false
+

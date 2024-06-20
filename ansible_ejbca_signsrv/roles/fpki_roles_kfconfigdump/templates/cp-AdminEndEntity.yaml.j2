@@ -1,0 +1,46 @@
+Object Type: Certificate Profile
+Version: 1
+Name: AdminEndEntity
+Type: End Entity
+Available Key Algorithms:
+- RSA
+Available Elliptic Curves:
+- prime256v1
+- secp384r1
+- secp521r1
+Available Bit Lengths:
+- 2048
+- 3072
+Available Security Levels:
+- 128
+- 192
+- 256
+Signature Algorithm: Inherit from Issuing CA
+Validity: 5y 1d
+Description: ''
+Overridable Extension OIDs: [
+  ]
+Non-overridable Extension OIDs: [
+  ]
+Key Usage:
+- Digital Signature
+- Non-Repudiation
+- Key Encipherment
+Extended Key Usage:
+- Client Authentication
+Subject Alternative Name Searchable: false
+Issuer Alternative Name Used: false
+CVC Access Rights (Inspection System): [
+  ]
+LDAP DN Order: false
+Available CAs:
+- {{ kf_cas_mgmt.name|default('Any CA') }}
+SSH Extensions:
+  no-touch-required: ''
+  permit-X11-forwarding: ''
+  permit-agent-forwarding: ''
+  permit-port-forwarding: ''
+  permit-pty: ''
+  permit-user-rc: ''
+Account Binding Namespace: [
+  ]

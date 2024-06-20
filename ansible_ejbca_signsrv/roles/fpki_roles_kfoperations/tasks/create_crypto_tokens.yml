@@ -1,0 +1,39 @@
+---
+
+- name: Check if cryptotoken '{{ item.token }}' exists and get the keys it may contain
+  register: existing_crypto_token_query
+  changed_when: false
+  failed_when: existing_crypto_token_query.rc > 1
+  no_log: false
+  ansible.builtin.command: >
+      {{ kf_ejbca_home }}/bin/ejbca.sh cryptotoken listkeys 
+      --token "{{ item.token }}"
+
+- name: Create cryptotoken '{{ item.token }}'
+  when: '"Unknown CryptoToken" in existing_crypto_token_query.stdout' # only create when not in token query
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh cryptotoken create
+    --token "{{ item.token }}"
+    --pin "{{ kf_vault_partition_passphrase }}"
+    --autoactivate true
+    --type Pkcs11NgCryptoToken
+    --lib "{{ hsm_driver_path }}"
+    --slotlabel "{{ kf_partition_name }}"
+    --slotlabeltype SLOT_LABEL
+    --forceusedslots
+
+- name: Create '{{ item.name }}' keys using key_object dict passed when looping tasks
+  when: 
+    - not k.value in existing_crypto_token_query.stdout # only create when not in token query
+    - key_objects is defined
+    - key_objects|length
+  loop: "{{ key_objects|dict2items }}"
+  loop_control:
+    loop_var: k
+    label: "{{ k.key }}"
+  failed_when: existing_crypto_token_query.rc > 1
+  ansible.builtin.command: >
+    "{{ kf_ejbca_home }}/bin/ejbca.sh" cryptotoken generatekey
+    --token "{{ item.token }}"
+    --alias "{{ k.value }}"
+    --keyspec 4096

@@ -1,0 +1,13 @@
+---
+
+hsm_slots:
+  database:
+    so_pin: "{{ kf_vault_partition_passphrase|default('foo123') }}"
+    partition_ref: SLOT_LABEL
+    partition_name: "{{ kf_partition_name|default('dbProtect') }}"
+    partition_password: "{{ kf_vault_partition_passphrase|default('foo123') }}"
+  ejbca:
+    so_pin: "{{ kf_vault_partition_passphrase|default('foo123') }}"
+    partition_ref: SLOT_LABEL
+    partition_name: "{{ kf_partition_name|default('certificateAuthorities') }}"
+    partition_password: "{{ kf_vault_partition_passphrase|default('foo123') }}"

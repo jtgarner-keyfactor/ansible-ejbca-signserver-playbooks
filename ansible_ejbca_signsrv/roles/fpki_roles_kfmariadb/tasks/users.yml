@@ -1,0 +1,19 @@
+# roles/mariadb/tasks/users.yml
+---
+
+- name: Create each user
+  loop: "{{ mariadb_databases|dict2items }}"
+  loop_control:
+    label: "{{ item.value.user }}"
+  no_log: "{{ hide_log_output }}"
+  community.mysql.mysql_user:
+    name: "{{ item.value.user }}"
+    password: "{{ item.value.password }}"
+    host: "{{ item.value.host|default('localhost') }}"
+    priv: "{{ item.value.priv }}"
+    append_privs: "{{ item.append_privs|default('no') }}"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    login_unix_socket: "{{ mariadb_srv_socket }}"
+    state: present
+

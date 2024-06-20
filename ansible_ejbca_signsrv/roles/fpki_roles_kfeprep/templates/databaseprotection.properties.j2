@@ -1,0 +1,11 @@
+databaseprotection.enablesign.AuditRecordData = true
+databaseprotection.enableverify.AuditRecordData = true
+databaseprotection.keyid = 1
+databaseprotection.keyid.AuditRecordData = 1
+databaseprotection.keyid.0 = 1
+databaseprotection.keylabel.0 = {{ kf_dbProtection_key_label }}
+databaseprotection.classname.0 = org.cesecore.keys.token.p11ng.cryptotoken.Pkcs11NgCryptoToken
+databaseprotection.properties.0 = sharedLibrary={{ hsm_driver_path }}, slotLabelType=SLOT_LABEL, slotLabelValue={{ kf_partition_name }}
+databaseprotection.tokenpin.0 = {{ kf_vault_partition_passphrase }}
+databaseprotection.version.0 = 2
+databaseprotection.sigalg.0 = SHA256WithRSA

@@ -1,133 +1,36 @@
 ---
 
 all:
-  hosts:
-    # ca hosts
-    # ra hosts
-    # va hosts
   children:
-    # eeRootCaServers:
-    #   hosts:
-    #     root-ca:
-    #       ansible_host: 54.145.21.147
-          
-    eeSubCaServers:
+    certificate_authorities:
       hosts:
-        sub-ca:
-          ansible_host: 54.145.21.147
+        ca-host:
+          ansible_host: 107.22.132.198
 
-    # ejbcaCaAddNodes:
-    #   hosts:
-    #     ca02:
-    #       ansible_host: 172.16.170.202
-    # # extSignMgmtCaServers:
-    # #   hosts:
-    # #     extsignmgmt01:
-    # #       ansible_host: 172.16.170.178
-    # # extSignPolicyCas:
-    # #   hosts:
-    # #     extsignpolca01:
-    # #       ansible_host: 172.16.170.178
-    # # policyCaSignIssuingCas:
-    # #   hosts:
-    # #     polcasignissueca:
-    # #       ansible_host: 172.16.170.178
-    # # peerconfigCas:
-    # #   hosts:
-    # #     peerca01:
-    # #       ansible_host: 172.16.170.178 
-    # # extEeRootCaServers:
-    # #   hosts:
-    # #     extroot01:
-    # #       ansible_host: 172.16.170.180
-    # # eeSubCaServers:
-    # #   hosts:
-    # #     subca01:
-    # #       ansible_host: 172.16.170.179
-    # eeRaServers:
-    #   hosts:
-    #     ra01:
-    #       ansible_host: 172.16.170.172
-    # eeVaServers:
-    #   hosts:
-    #     va01:
-    #       ansible_host: 172.16.170.173
-    # # dbServers:
-    # #   hosts:
-    # #     webrepo.solitude.skyrim:
-    # #       ansible_host: 172.16.170.133       
-    # # vaSigners:
-    # #   hosts:
-    # #     va01:
-    # #       ansible_host: 172.16.170.173
-    # pkiTlsCerts:
-    #   hosts:
-    #     pkiTlsEnrollmentCA:
-    #       ansible_host: 172.16.170.170
-    # pkiCsrCerts:
-    #   hosts:
-    #     pkiCsrEnrollmentCa:
-    #       ansible_host: 172.16.170.170
-    # httpdServers:
-    #   children:
-    #     eeCaServers:
-    #     eeVaServers:
-    #     eeRaServers:
-    #     # ceServers:
-    #     # eeSignServers:
-    #     # ceSignServers:
-    #     # extSignMgmtCaServers:
-    #     # peerconfigCas:
-    #     # extEeRootCaServers:
-    #     # eeSubCaServers: 
-    #     # ejbcaCaAddNodes:
-    # mariadbServers:
-    #   children:
-    #     # eeRootCaServers:
-    #     eeCaServers:
-    #     eeVaServers:
-    #     eeRaServers:
-    #     # ceServers:
-    #     # eeSignServers:
-    #     # ceSignServers:
-    #     # extSignMgmtCaServers:
-    #     # extEeRootCaServers:
-    #     # eeSubCaServers:
-    #     # ejbcaCaAddNodes:
-    # applicationServers:
-    #   children:
-    #     # eeRootCaServers:
-    #     eeCaServers:
-    #     eeVaServers:
-    #     eeRaServers:
-    #     ceServers:
-    #     # eeSignServers:
-    #     # ceSignServers:
-    #     # extSignMgmtCaServers:
-    #     # extSignPolicyCas:
-    #     # policyCaSignIssuingCas:
-    #     # extEeRootCaServers:
-    #     # eeSubCaServers:
-    #     # ejbcaCaAddNodes:
-    # upgradeEeServers:
-    #   children:
-    #     # eeRootCaServers:
-    #     eeCaServers:
-    #     eeVaServers:
-    #     eeRaServers:
-    #     # extEeRootCaServers:
-    #     # eeSubCaServers:  
-    # pkiServers:
-    #   children:
-    #     mariadbServers:
-    #     applicationServers:
-    #     httpdServers:
-    ejbcaServers:
+    validation_authorities:
+      hosts:
+        va-host:
+          ansible_host: 52.91.129.184
+          
+    registration_authorities:
+      hosts:
+        # ra-host:
+        #   ansible_host: 54.82.38.202
+
+    ejbca_servers:
       children:
-        eeRootCaServers:
-        eeSubCaServers:
-        softwareManagement:
+        certificate_authorities:
+        validation_authorities:
+        registration_authorities:
+
+    peer_servers:
+      children:
+        validation_authorities:
+        registration_authorities:
 
   vars:
     ansible_user: ec2-user
     ansible_ssh_private_key_file: ~/.ssh/c2-ssh.pem
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+    

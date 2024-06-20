@@ -1,0 +1,21 @@
+# roles/mariadb/tasks/main.yml
+---
+
+- name: Include distribution dependent variables
+  with_first_found:
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+  ansible.builtin.include_vars: "{{ item }}"
+
+- name: Configure MariaDB
+  ansible.builtin.include_tasks: config.yml
+
+- name: Set root-password
+  ansible.builtin.include_tasks: root-password.yml
+
+- name: Remove initial databases
+  ansible.builtin.include_tasks: databases.yml
+
+- name: Create database users
+  ansible.builtin.include_tasks: users.yml
+  when: 

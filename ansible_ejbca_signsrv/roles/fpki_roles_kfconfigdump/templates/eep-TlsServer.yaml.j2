@@ -1,0 +1,40 @@
+Object Type: End Entity Profile
+Version: 1
+Name: TlsServerEndEntityProfile
+E-Mail Used: false
+Description: ''
+Default CA: {{ kf_cas_mgmt.name }}
+Available CAs:
+- {{ kf_cas_mgmt.name }}
+Default Certificate Profile: TlsServerProfile
+Available Certificate Profiles:
+- TlsServerProfile
+Default Token Type: PKCS12 File
+Available Token Types:
+- User Generated
+- PKCS12 File
+- JKS File
+- PEM File
+Subject DN:
+  CN:
+  - Required: true
+  O:
+  - Required: true
+    Modifiable: false
+    Values:
+    - {{ kf_org }}
+  C:
+  - Required: true
+    Modifiable: false
+    Values:
+    - US
+  OU:
+  - Required: true
+    Modifiable: false
+    Values:
+    - {{ kf_org_unit }}
+Subject Alternative Name:
+  DNSNAME:
+  - Required: true
+    Modifiable: false
+    Copy: true

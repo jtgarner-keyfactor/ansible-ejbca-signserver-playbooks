@@ -1,0 +1,66 @@
+---
+
+- name: Remove the test database
+  community.mysql.mysql_db:
+    name: test
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    login_unix_socket: "{{ mariadb_srv_socket }}"
+    state: absent
+
+- name: Loop 'mariadb_databases' dict to create user defined databases
+  loop: "{{ mariadb_databases|dict2items }}"
+  loop_control: 
+    label: "{{ item.value.name }}"
+  register: db_creation
+  community.mysql.mysql_db:
+    name: "{{ item.value.name }}"
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+    login_unix_socket: "{{ mariadb_srv_socket }}"
+    state: present
+
+- name: Copy database init scripts
+  loop: "{{ db_creation.results }}"
+  loop_control:
+    label: "{{ item.db_list }}"
+  when: 
+    - item.changed
+    - item.item.init_script is defined
+  tags: mariadb
+  no_log: "{{ hide_log_output }}"
+  ansible.builtin.template:
+    src: "{{ item.item.init_script }}"
+    dest: "/tmp/{{ item.item.init_script|basename }}"
+    mode: '0600'
+
+- name: Initialise databases
+  loop: "{{ db_creation.results }}"
+  loop_control:
+    label: "{{ item.db_list }}"
+  when: 
+    - item.changed 
+    - item.item.init_script is defined
+  tags: mariadb
+  no_log: "{{ hide_log_output }}"
+  community.mysql.mysql_db:
+    name: "{{ item.item.name }}"
+    state: import
+    target: "/tmp/{{ item.item.init_script|basename }}"
+    login_user: root
+    login_password: "{{ item.users.root.password }}"
+    login_unix_socket: "{{ item.socket }}"
+
+- name: Delete init scripts from the server
+  loop: "{{ db_creation.results }}"
+  loop_control:
+    label: "{{ item.db_list }}"
+  when: 
+    - item.changed 
+    - item.item.init_script is defined
+  tags: mariadb
+  no_log: "{{ hide_log_output }}"
+  ansible.builtin.file:
+    name: "/tmp/{{ item.item.init_script|basename }}"
+    state: absent
+
