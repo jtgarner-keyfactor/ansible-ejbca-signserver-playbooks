@@ -1,0 +1,15 @@
+# roles/mariadb/tasks/install.yml
+---
+
+- name: Install MariaDB packages
+  tags: mariadb
+  ansible.builtin.package:
+    name: 
+      - mariadb
+      - mariadb-backup
+      - mariadb-common
+      - mariadb-server
+      - mariadb-server-galera
+      - python3-PyMySQL
+    state: latest
+

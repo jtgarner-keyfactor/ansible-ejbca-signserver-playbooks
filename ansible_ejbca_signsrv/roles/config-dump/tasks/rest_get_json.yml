@@ -1,0 +1,44 @@
+---
+
+# match directory syntax to name in role/vara/main.yml list to get the key
+# the key is converted to a string
+- name: Convert configdump directory syntax type to CLI and API, all uppercase and letter syntax 
+  ansible.builtin.set_fact:
+    configdump_json_type: 
+      "{{ configdump_type_list|dict2items|
+        selectattr('key','==',configdump_config_type)|
+        map(attribute='value')|join('')
+      }}"
+  when: configdump_json_type is undefined
+  tags: always
+
+- name: Return all configdump items for a single configuration type
+  block:
+
+  - name: Get all {{ configdump_json_type }}s
+    ansible.builtin.uri:
+      url: >
+        {{ rest_base_url }}/{{ endpoint_configdump }}/{{ configdump_json_type }}?{{ params_configdump_setting_get|join('&') }}
+      method: Get
+      headers:
+        Authorization: "{{ 'Bearer ' ~ authorization.access_token if 'oauth' in ansible_run_tags else omit }}"
+      validate_certs: false
+      client_cert: "{{ rest_auth_public_cert_path if 'certauth' in ansible_run_tags else omit }}"
+      client_key: "{{ rest_auth_private_key_path if 'certauth' in ansible_run_tags else omit }}"
+    changed_when: 
+      - get.json.error_code is undefined
+      - configdump_config_type in get.json
+    register: get
+
+  - name: Format response for all items
+    ansible.builtin.set_fact:
+      config_dump_get_response_items: "{{ get.json[configdump_config_type|string]|flatten }}"
+
+  tags: always
+
+# - name: Print GET Response
+#   ansible.builtin.debug: 
+#     msg: "{{ get.json }}"
+#   tags:
+#     - never
+#     - debug

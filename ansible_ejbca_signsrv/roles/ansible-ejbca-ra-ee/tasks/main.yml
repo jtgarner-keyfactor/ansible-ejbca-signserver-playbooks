@@ -1,9 +1,0 @@
----
-# tasks file for ansible-ejbca-ra-ee
-
-- name: Check deployment
-  include_role: 
-    name: ansible-ejbca-restart-wildfly
-  vars:
-    restart_wildfly: true
-  tags: check_deployment

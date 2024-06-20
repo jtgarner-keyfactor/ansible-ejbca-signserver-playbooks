@@ -1,0 +1,12 @@
+{% import '_templates/macros.j2' as macro with context  %}
+{% set ns = namespace() %}
+
+Object Type: Peer Connector
+Version: 1
+Name: {{ peer[1].name }}
+Peer Enabled: {{ peer[1].enabled | default('false') }}
+URL: https://{{ peer[1].hostname }}.{{ env.domain_name }}/{% if peer[0].node_type[0].ss %}signserver{% else %}ejbca/peer/v1{% endif +%}
+Long Hanging Connections Enabled: {% if peer[0].node_type[0].ra %}true{% else %}false{% endif +%}
+Min Long Hanging Connections: {{ peer[1].peering_connections[0].minimum | default('2') }}
+Max Long Hanging Connections: {{ peer[1].peering_connections[0].maximum | default('2') }}
+Authentication Key Binding: {{ macro.get_ca_bindings("peering",ns,saas_environment) }}{{ ns.name }}

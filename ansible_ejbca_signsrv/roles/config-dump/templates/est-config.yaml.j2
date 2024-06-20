@@ -1,0 +1,53 @@
+Object Type: EST Configuration
+Version: 2
+Name: {{ alias.name|default('clientMode') }}
+RA Name Generation Scheme: {{ alias.ra_name_generation_scheme|default('DN') }}
+RA Name Generation DN Fields: {{ alias.ra_name_generation_params|default('CN') }}
+RA Name Generation Prefix: {{ alias.ra_name_generation_prefix|default('""',true) }}
+RA Name Generation Postfix: {{ alias.ra_name_generation_postfix|default('""',true) }}
+Default CA: 
+{%- if deployment_pkiaas|default(false) %} '{{ alias.profile.ca }}'
+{%- else %} '{{ alias.ca }}'{% endif %}
+
+End Entity Profile:
+{%- if deployment_pkiaas|default(false) %} '{{ alias.profile.profile.ee_profile|default('EMPTY') }}'
+{%- else %} '{{ alias.ee_profile|default('EMPTY') }}'{% endif %}
+
+Certificate Profile:
+{%- if deployment_pkiaas|default(false) %} '{{ alias.profile.cert_profile|default('ENDUSER') }}'
+{%- else %} '{{ alias.cert_profile|default('ENDUSER') }}'{% endif %}
+
+Require Client Certificate: {{ alias.require_client_certificate|default('false')|lower }}
+Client Username: {{ alias.client_username|default('""',true) }}
+Client Password: placeholder
+Certificate Renewal with Same Keys: {{ alias.certificate_renewal_same_keys|default('true')|lower }}
+Operation Mode: {{ alias.operational_mode|default('client') }}
+Authentication Module: {{ alias.authentication_module|default('ChallengePwd')}}
+{# TDDO - 3/3/24 JTG...Remove if ending up not needing %}
+{% if alias.authentication_module is defined and alias.authentication_module|length > 0 %}
+  {%- for auth in alias.authentication_module|default('""') +%}
+    {%- if auth.http_basic_auth|lower -%}
+Authentication Module: HttpBasicAuth
+    {%- elif auth.challenge_pwd|lower -%}
+Authentication Module: ChallengePwd
+    {%- elif auth.dn_part_pwd|lower -%}
+Authentication Module: DnPartPwd
+    {% endif %}
+  {% endfor +%}
+{% else %}
+Authentication Module: ""
+{% endif %}{#}
+Extract Username Component: {{ alias.extract_username_component|default('CN') }}
+Extract DN Part Pwd Component: {{ alias.extract_dn_part_pwd_component|default('DN') }}
+Vendor Certificate Mode: {{ alias.vendor_certificate_mode|default('false')|lower }}
+{% if alias.list_of_vendor_cas is defined and alias.list_of_vendor_cas|length > 0 %}
+List of Vendor CAs:
+  {% for ca in alias.list_of_vendor_cas %}
+- {{ ca }}
+  {%- endfor -%}
+{% else %}
+List of Vendor CAs: ""
+{%- endif +%}
+Allow Change Subject Name: {{ alias.allow_change_subject_name|default('false')|lower }}
+Support proxy ca: false
+Server-side key generation enabled: {{ alias.server_side_key_generation_module|default('false')|lower }}

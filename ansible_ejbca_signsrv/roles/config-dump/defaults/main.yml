@@ -1,0 +1,109 @@
+---
+
+# Configdump templates
+template_base: roles/config-dump/templates/
+template_acme_config: roles/config-dump/templates/acme-config.yaml.j2
+template_bindings_auth: roles/config-dump/templates/internal-key-bindings-auth.yaml.j2
+template_bindings_ocsp: roles/config-dump/templates/internal-key-bindings-ocsp.yaml.j2
+template_certificate_authority: roles/config-dump/templates/certificate-authority.yaml.j2
+template_certificate_profile: roles/config-dump/templates/certificate-profile.yaml.j2
+template_crypto_token: roles/config-dump/templates/crypto-token.yaml.j2
+template_end_entity_profile: roles/config-dump/templates/end-entity-profile.yaml.j2
+template_peer_connector: roles/config-dump/templates/peer-connector.yaml.j2
+template_publishers: roles/config-dump/templates/publishers.yaml.j2
+template_scep_config: roles/config-dump/templates/scep-config.yaml.j2
+
+# endpoint for json configdump
+endpoint_ca: v1/ca
+endpoint_certificate_v1: v1/certificate
+endpoint_certificate_v2: v2/certificate
+endpoint_cryptotoken: v1/cryptotoken
+endpoint_configdump: v1/configdump
+endpoint_configdump_post: "{{ endpoint_configdump }}?{{ params_configdump_post_string }}"
+endpoint_configdump_get: "{{ endpoint_configdump }}?{{ params_configdump_get }}"
+
+# filter - exclude
+filter_exclude: exclude=*:*
+
+# filter - include
+filter_ca: "{{ filter_exclude }}&include=CA"
+filter_certprofile: "{{ filter_exclude }}&include=CERTPROFILE" 
+filter_cryptotoken: "{{ filter_exclude }}&include=CRYPTOTOKEN"
+filter_eeprofile: "{{ filter_exclude }}&include=EEPROFILE" 
+filter_keybindings: "{{ filter_exclude }}&include=KEYBINDING" 
+filter_peering: "{{ filter_exclude }}&include=PEERCONNECTOR" 
+filter_publisher: "{{ filter_exclude }}&include=PUBLISHER" 
+
+# task switches
+get_active_cas: false
+get_existing_cas_all: false
+get_existing_cas_single: false
+get_single_cp: false
+get_single_peer: false
+get_single_publisher: false
+
+# general web call options
+headers_content_type: application/json
+
+# post parameters
+params_configdump_post:
+  - ignoreerrors=true
+  - initialize=true
+  - continue=true
+  - overwrite=yes
+  - resolve=useDefault
+
+# get parameters
+params_configdump_get:
+  - ignoreerrors=true
+  - defaults=true
+  - externalcas=true
+
+params_configdump_setting_get:
+  - ignoreerrors=true
+  - defaults=true
+
+# More options
+configdump_json_single: false
+configdump_config_type: certificate-profiles
+
+# directory paths
+config_dump_dir: dump
+config_dump_location: "{{ playbook_dir }}/{{ configdump_dir }}"
+config_dump_sub_dirs: []
+
+# switches
+config_dump_reset: false
+
+# Jinja templates
+# certificate-profiles
+defaults_bit_lengths:
+  - 0
+  - 110
+  - 112
+  - 113
+  - 126
+  - 128
+  - 131
+  - 160
+  - 161
+  - 162
+  - 163
+  - 167
+  - 173
+  - 179
+  - 189
+  - 190
+  - 191
+  - 192
+  - 193
+  - 224
+  - 225
+  - 232
+  - 233
+  - 236
+  - 237
+  - 238
+  - 239
+  - 256
+  - 257

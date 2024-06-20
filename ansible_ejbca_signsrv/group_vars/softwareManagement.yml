@@ -1,0 +1,57 @@
+
+# Software dependencies for installation
+# In a single variables file for easy management of version control
+
+# Base Variables
+software_home_dir: /opt
+
+# Software
+software_apps:
+  jboss:
+    install: false
+    modify: true
+    name: JBoss EAP 7.4
+    version: 7.4
+    checksum: 08d1e420331d0b6ad6c36a4dd782a110152cabfa23439e6ecd9a7c4d50bffd01
+    galleon: true
+    galleon_version: 4.2.0
+    galleon_checksum: sha256:63ccfb1546fbe32a2222b61e9ae0a594be5f81a4d6e45cd22861eb158a5bfb06
+
+  wildfly:
+    name: wildfly
+    version: 26.0.1.Final
+    app_root_directory: "{{ software_home_dir }}"
+    app_directory_name: "{{ software.wildfly.name }}-{{ software.wildfly.version }}"
+    app_directory_path: "{{ software.wildfly.root_dir }}/{{ software.wildfly.app_directory_name }}"
+    configure_options:
+      install: true
+      modify: true
+    
+    # full installation
+    download_uri: https://github.com/wildfly/wildfly/releases/download/{{ software.wildfly.version }}/{{ software.wildfly.app_directory_name }}.tar.gz
+    download_checksum: 08d1e420331d0b6ad6c36a4dd782a110152cabfa23439e6ecd9a7c4d50bffd01
+    
+    # galleon installation
+    galleon: true
+    galleon_version: 4.2.0
+    galleon_checksum: sha256:63ccfb1546fbe32a2222b61e9ae0a594be5f81a4d6e45cd22861eb158a5bfb06
+    galleon_download_uri: 
+
+
+
+# wildfly_version: 26.0.1.Final
+# wildfly_checksum: 08d1e420331d0b6ad6c36a4dd782a110152cabfa23439e6ecd9a7c4d50bffd01
+# wildfly_use_galleon: true
+# wildfly_galleon_version: 4.2.8
+
+# wildfly_galleon_checksum: sha256:63ccfb1546fbe32a2222b61e9ae0a594be5f81a4d6e45cd22861eb158a5bfb06
+# wildfly_jboss_client_checksum: sha256:859e69844bf047193f4ab461c7cc2b7c4b18ec76d1f32ebebcb9470097ef7dcd
+# # Disabling only works on Wildfly 20 or earlier, Wildfly 21 and later changed, remoting now requires infinispan cache
+# wildfly_disable_infinispan: true
+
+# # Manage the Wildfly service with Ansible
+# wildfly_manage_service: true
+
+# # Elytron password file location used in the EJBCA and SS prep roles
+# wildfly_elytron_pass_dir: /opt/elytron
+# wildfly_elytron_pass_file: "{{ wildfly_elytron_pass_dir }}/wildfly_pass"

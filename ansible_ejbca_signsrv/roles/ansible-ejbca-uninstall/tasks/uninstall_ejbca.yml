@@ -1,6 +1,0 @@
----
-
-- name: Remove EJBCA 
-  file:
-    path: "{{ item }}"
-    state: absent

@@ -1,0 +1,64 @@
+# roles/mariadb/tasks/databases.yml
+---
+
+- name: Remove the test database
+  tags: mariadb
+  community.mysql.mysql_db:
+    name: test
+    login_user: root
+    login_password: "{{ mariadb_vault_root_pw }}"
+    login_unix_socket: "{{ mariadb_srv_socket }}"
+    state: absent
+
+
+- name: Create user defined databases
+  loop: "{{ mariadb_databases }}"
+  loop_control: 
+    label: "{{ item.name }}"
+  register: db_creation
+  tags: mariadb
+  community.mysql.mysql_db:
+    name: "{{ item.name }}"
+    login_user: root
+    login_password: "{{ mariadb_vault_root_pw }}"
+    login_unix_socket: "{{ mariadb_srv_socket }}"
+    state: present
+
+
+# Below, the databases are initialised, but only when the database was created
+# in the previous step. This ensures idempotence.
+# These have not been tested.
+
+- name: Copy database init scripts
+  loop: "{{ db_creation.results }}"
+  when: item.changed and item.item.init_script is defined
+  tags: mariadb
+  no_log: true
+  ansible.builtin.template:
+    src: "{{ item.item.init_script }}"
+    dest: "/tmp/{{ item.item.init_script|basename }}"
+    mode: '0600'
+
+
+- name: Initialise databases
+  loop: "{{ db_creation.results }}"
+  when: item.changed and item.item.init_script is defined
+  tags: mariadb
+  no_log: true
+  community.mysql.mysql_db:
+    name: "{{ item.item.name }}"
+    state: import
+    target: "/tmp/{{ item.item.init_script|basename }}"
+    login_user: root
+    login_password: "{{ mariadb_vault_root_pw }}"
+    login_unix_socket: "{{ mariadb_srv_socket }}"
+
+- name: Delete init scripts from the server
+  loop: "{{ db_creation.results }}"
+  when: item.changed and item.item.init_script is defined
+  tags: mariadb
+  no_log: true
+  ansible.builtin.file:
+    name: "/tmp/{{ item.item.init_script|basename }}"
+    state: absent
+

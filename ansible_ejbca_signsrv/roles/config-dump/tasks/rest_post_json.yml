@@ -1,0 +1,58 @@
+---
+
+# Wrapper task needing to be called from a play or another role
+# 'config_item_type' and 'config_item_name' variables need to be to this task other wise it will fail
+
+- name: Fail if 'config_item_type' or 'config_item_name' are undefined
+  ansible.builtin.fail:
+    msg: |-
+      The play failed for the following reasons:
+
+      {% if config_item_type is undefined %}
+      - 'config_item_type' was not defined, or was empty, when a task included this role.
+      {% endif -%}
+
+      {% if config_item_name is undefined %}
+      - 'config_item_name' was not defined, or was empty, when a task included this role.
+      {% endif %}
+      
+      Example:
+        vars:
+          config_item_name: tlsClient
+          config_item_type: certificate-profiles
+  when: 
+    - config_item_name is undefined or
+      config_item_type is undefined
+
+# Used for both OAuth and Certauth authorization
+# parameters are omitted depending on the tag provided at runtime defining the authorization type 
+- name: "{{ config_item_name }} - POST JSON Configdump"
+  ansible.builtin.uri:
+    url: "{{ rest_base_url }}/{{ endpoint_configdump }}?{{ params_configdump_post|join('&') }}"
+    method: POST
+    headers:
+      Authorization: "{{ 'Bearer ' ~ authorization.access_token if 'oauth' in ansible_run_tags else omit }}"
+    validate_certs: false
+    body_format: json
+    body: |-
+      {
+        "{{ config_item_type }}": {
+          "{{ config_item_name }}": {{ rendered_template | from_yaml | to_json(indent=2) }}
+          }
+        }
+      }
+    client_cert: "{{ rest_auth_public_cert_path if 'certauth' in ansible_run_tags else omit }}"
+    client_key: "{{ rest_auth_private_key_path if 'certauth' in ansible_run_tags else omit }}"
+  vars:
+    rendered_template: "{{ lookup('template', template_base + config_item_type + '.yaml.j2') }}"
+  changed_when: 
+    - post.json.error_code is undefined
+    - post.json.success is defined
+  register: post
+
+- name: Print {{ config_item_name }} response errors and warnings when they exist
+  ansible.builtin.debug: 
+    msg: "{{ post.json }}"
+  when: 
+    - post.json.warnings or
+      post.json.errors

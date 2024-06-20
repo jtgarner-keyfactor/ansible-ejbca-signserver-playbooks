@@ -1,0 +1,30 @@
+Object Type: ACME Configuration
+Version: 1
+Name: {{ alias.name }}
+RA Name Generation Scheme: {{ alias.ra_name_generation_scheme|default("RANDOM",true) }}
+RA Name Generation Params: {{ alias.ra_name_generation_params|default("CN",true) }}
+RA Name Generation Prefix: {{ alias.ra_name_generation_prefix|default("''",true) }}
+RA Name Generation Postfix: {{ alias.ra_name_generation_postfix|default("''",true) }}
+End Entity Profile: {% if deployment_pkiaas|default(false) %}{{ alias.profile.ee_profile }}{% else %}{{ alias.ee_profile|default("''",true) }}{% endif +%}
+Pre-Authorization Allowed: {{ alias.pre_authorization_allowed|default('false')|lower }}
+Wildcard Certificate Issuance Allowed: {{ alias.wildcard_certificate_issuance_allowed|default('false')|lower }}
+Wildcard Certificate Issuance for http-01 Challenge Allowed: {{ alias.wildcard_certificate_issuance_allowed|default('false')|lower }}
+DNS Identifier Challenge Types: {{ alias.dns_identifier_challenge_types|default('any-dns-challenge')|join(',') }} 
+Terms of service require new approval: {{ alias.wildcard_certificate_issuance_http_01_allowed|default('false')|lower }}
+Site URL: {{ alias.site_url|default("''",true) }}
+Terms of Service URL: {{ alias.terms_of_service_url|default("''",true) }}
+Terms of Service Change URL: {{ alias.terms_of_service_change_url|default("''",true) }}
+DNS Resolver: {{ alias.dns_resolver|default("''",true) }}
+DNS Port: {{ alias.dns_port|default("''",true) }}
+DNSSEC Trust Anchor:
+{% for anchor in alias.dnssec_trust_anchor|default([]) %}
+  {{ anchor }}
+{% endfor %}
+Validate DNSSEC: {{ alias.validate_dnssec|default('true')|lower }}
+Require Client Authentication: {{ alias.wildcard_certificate_issuance_allowed|default('false')|lower }}
+Retry After: {{ alias.retry_after|default('0',true) }}
+Authorized Redirect Ports: {{ alias.authorized_redirect_ports|default('22,25,80,443',true) }}
+Agree to new Terms of service allowed: {{ alias.agree_to_new_terms_of_service_allowed|default('false')|lower }}
+Require External Account Binding: {{ alias.require_external_account_binding|default('false')|lower }}
+Approval Profile for newAccount: {{ alias.approval_profile_for_newAccount|default('-1',true) }}
+Approval Profile for keyChange: {{ alias.approval_profile_for_keyChange|default('-1',true) }}

@@ -1,0 +1,59 @@
+---
+
+- name: Create group
+  ansible.builtin.group:
+    name: "{{ item.value.group }}"
+    state: present
+  loop: "{{ users|dict2items }}"
+  loop_control:
+    label: "{{ item.value.group }}"
+
+- name: Create user
+  user:
+    name: "{{ item.value.name }}"
+    group: "{{ item.value.group }}"
+    createhome: "{{ item.value.create_home }}"
+    state: present
+  loop: "{{ users|dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Gather installed package facts
+  ansible.builtin.package_facts:
+    manager: auto
+  changed_when: true
+
+- name: Install software packages if not installed or installed version is incorrect
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ software_packages }}"
+  loop_control:
+    label: "{{ item }}"
+  when: not item in ansible_facts.packages
+
+- name: Get existing filepaths in {{ software_install_dir }}
+  ansible.builtin.find:
+    paths: "{{ software_install_dir }}"
+    file_type: directory
+  register: existing_apps_search
+  changed_when: true
+
+- name: Store current path directory in list
+  ansible.builtin.set_fact:
+    existing_apps: "{{ existing_apps|default([]) + [item.path|basename] }}"
+  loop: "{{ existing_apps_search.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Unarchive application binaries
+  ansible.builtin.unarchive:
+    src: "{{ item.source }}/{{ item.filename }}"
+    dest: "{{ item.install_dir }}"
+    owner: "{{ item.user }}"
+    group: "{{ item.group }}"
+    remote_src: true
+  loop: "{{ software_binaries }}"
+  loop_control:
+    label: "{{ item.path }}"
+  when: not item.path in existing_apps

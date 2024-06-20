@@ -1,0 +1,43 @@
+---
+
+# ansible-playbook -i inventory -l eeRootCaServers,eeSubCaServers,ca02 deploy_nodes.yml
+
+- name: Deploy Software Stack
+  hosts: ejbcaServers
+  become: true
+  #become_method: sudo
+  gather_facts: yes
+
+  pre_tasks: 
+
+    - name: Include variables from {{ playbook_dir }}/variables directory
+      ansible.builtin.include_vars:
+        dir: vars
+      tags: always
+
+  #tasks:
+
+    # - debug:
+    #     msg: "{{ item|type_debug }}"
+    #   loop: "{{ software_binaries }}"
+    #   loop_control:
+    #     label: "{{ item.name }}"
+    
+
+    # - name: Install software and dependencies
+    #   ansible.builtin.include_role:
+    #     name: manage-software
+    #   vars:
+    #     software_binaries:
+    #       - "{{ apache_ant }}"
+    #       - "{{ application_server }}"
+    #       - "{{ ejbca }}"
+
+
+  roles:
+  
+    - manage-software
+
+  #   #- configure-hostname
+  #   - manage-users
+  #   - manage-software

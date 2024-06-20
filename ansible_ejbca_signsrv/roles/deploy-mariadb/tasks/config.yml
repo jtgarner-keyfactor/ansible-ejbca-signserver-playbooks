@@ -1,0 +1,19 @@
+# roles/mariadb/tasks/config.yml
+---
+
+- name: Configure swappiness
+  tags: mariadb
+  when: mariadb_configure_swappiness|bool
+  ansible.posix.sysctl:
+    name: vm.swappiness
+    value: "{{ mariadb_swappiness }}"
+    state: present
+
+
+- name: Ensure service is started and enabled
+  tags: mariadb
+  ansible.builtin.systemd:
+    name: mariadb.service
+    state: started
+    enabled: true
+

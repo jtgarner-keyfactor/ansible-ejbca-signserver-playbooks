@@ -1,0 +1,22 @@
+Object Type: Internal Key Binding
+Version: 1
+Name: {{ binding[0].name }}
+Type: AuthenticationKeyBinding
+Status: DISABLED
+Crypto Token: Peering
+Bound Certificate SHA-1: null
+Key Pair Alias: {{ binding[0].token_keys[0].name }}
+Next Key Pair Alias: null
+Signature Algorithm: {{ binding[0].sign_algorithm }}
+{% if binding[0].trusted_certificates != none and binding[0].trusted_certificates | length > 0 %}
+Trusted certificates:
+{% for cert in binding[0].trusted_certificates %}
+  {{ cert }}:
+  - ANY
+{% endfor %}
+{% else %}
+Trusted certificates: {
+  }
+{% endif %}
+Properties:
+  Protocol and Cipher Suite: {{ binding[0].protocol_cipher_suite }}

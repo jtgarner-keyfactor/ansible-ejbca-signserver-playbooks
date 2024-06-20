@@ -1,0 +1,32 @@
+---
+
+- name: Check if {{ config_dump_dir|basename }} configdump directory exists
+  stat:
+    path: "{{ config_dump_dir }}"
+  register: config_dump_dir_exists
+
+- name: Remove existing {{ config_dump_dir|basename }} configdump directory
+  file:
+    path: "{{ config_dump_dir }}"
+    state: absent
+  register: config_dump_dir_removal
+  when: 
+    - config_dump_dir_exists.stat.exists
+    - config_dump_reset
+    
+- name: Create {{ config_dump_dir|basename }} configdump directory
+  file:
+    path: "{{ config_dump_dir }}"
+    state: directory
+  register: config_dump_dir_create
+  when:
+    - config_dump_dir_exists.stat.exists is false or 
+      config_dump_reset
+      
+- name: Create configdump subdirectories
+  ansible.builtin.file:
+    path: "{{ config_dump_dir }}/{{ item }}"
+    state: directory
+  loop: "{{ config_dump_sub_dirs }}"
+  when: 
+    - config_dump_sub_dirs|length > 0

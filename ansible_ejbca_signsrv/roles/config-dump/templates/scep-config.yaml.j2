@@ -1,0 +1,27 @@
+Object Type: SCEP Configuration
+Version: 2
+Name: {{ alias.name }}
+{% if alias.operational_mode|default('RA') == 'RA'%}
+Operational Mode: RA
+{% endif %}
+Include CA Certificate in Response: {{ alias.include_ca_cert_in_response|default('false')|lower }}
+Return CA Chain In GetCACert response: {{ alias.return_ca_chain_in_response|default('false')|lower }}
+CA Chain order: {{ alias.ca_chain_root_first|default('false')|lower  }}
+Allow Legacy Digest Algorithms in Response: {{ alias.allow_legacy_digest_algorithms_response|default('false')|lower }}
+Authenticate through Microsoft Intune: '{{ alias.authenticate_through_microsoft_intune|default('false')|lower }}'
+RA End Entity Profile:
+{%- if deployment_pkiaas|default(false) %} '{{ alias.profile.ee_profile|default('EMPTY') }}'
+{%- else %} '{{ alias.ee_profile|default('EMPTY') }}'{% endif %}
+
+RA Certificate Profile: 
+{%- if deployment_pkiaas|default(false) %} '{{ alias.profile.cert_profile|default('ENDUSER') }}'
+{%- else %} '{{ alias.cert_profile|default('ENDUSER') }}'{% endif %}
+
+RA CA Name:
+{%- if deployment_pkiaas|default(false) %} '{{ alias.profile.ca }}'
+{%- else %} '{{ alias.ca }}'{% endif %}
+
+RA Authentication Password: 'placeholder'
+Azure Application ID: 699eae21-5f34-4acd-880e-1ad56dbc58ac
+Azure Application API Secret: 'placeholder'
+Intune Tenant: {{ alias.intune_tenant|default('""')|lower }}

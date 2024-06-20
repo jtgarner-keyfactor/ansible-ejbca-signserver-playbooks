@@ -1,0 +1,18 @@
+---
+
+- name: Set remote server hostname
+  ansible.builtin.hostname:
+    name: "{{ hostname }}"
+
+- name: Add hostname file entry
+  ansible.builtin.lineinfile:
+    path: "/etc/hosts"
+    regexp: ".*\t{{ hostname }}"
+    line: "{{ ipaddress }}\t{{ hostname }}"
+    state: present
+    backup: yes
+  register: ansible_hostname_add
+  when: 
+    - hostname != hostname or 
+      hostname == hostname
+  #with_items: "{{groups['multi']}}"

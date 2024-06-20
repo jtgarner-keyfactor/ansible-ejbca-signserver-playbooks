@@ -1,0 +1,52 @@
+---
+
+# general web call options
+headers_content_type: application/json
+
+# endpoint for json configdump
+endpoint_ca: v1/ca
+endpoint_certificate_v1: v1/certificate
+endpoint_certificate_v2: v2/certificate
+endpoint_cryptotoken: v1/cryptotoken
+endpoint_configdump: v1/configdump
+endpoint_configdump_post: "{{ endpoint_configdump }}?{{ params_configdump_post_string }}"
+endpoint_configdump_get: "{{ endpoint_configdump }}?{{ params_configdump_get }}"
+
+# filter - exclude
+filter_exclude: exclude=*:*
+
+# filter - include
+filter_ca: "{{ filter_exclude }}&include=CA"
+filter_certprofile: "{{ filter_exclude }}&include=CERTPROFILE" 
+filter_cryptotoken: "{{ filter_exclude }}&include=CRYPTOTOKEN"
+filter_eeprofile: "{{ filter_exclude }}&include=EEPROFILE" 
+filter_keybindings: "{{ filter_exclude }}&include=KEYBINDING" 
+filter_peering: "{{ filter_exclude }}&include=PEERCONNECTOR" 
+filter_publisher: "{{ filter_exclude }}&include=PUBLISHER" 
+
+# config dump types available in EJBCA
+# hyphenated variables required for mappings to config dump folder structure
+configdump_type_list:
+  acme-config: ACMECONFIG
+  admin-preferences: ADMINPREFS
+  available-protocols: AVAILABLEPROTOCOLS
+  approval-profile: APPROVALPROFILE
+  autoenrollment-config: AUTOENROLLMENTCONFIG
+  certificate-authorities: CA
+  certificate-profiles: CERTPROFILE
+  cmp-config: CMPCONFIG
+  crypto-tokens: CRYPTOTOKEN
+  custom-certificate-extensions: CERTEXTENSION
+  end-entity-profiles: EEPROFILE
+  est-config: ESTCONFIG
+  extended-key-usage: EXTENDEDKEYUSAGE
+  internal-key-bindings: KEYBINDING
+  ocsp-configuration: OCSPCONFIG
+  peer-connects: PEERCONNECTOR
+  publishers: PUBLISHER
+  admin-roles: ROLE
+  services: SERVICES
+  scep-config: SCEPCONFIG
+  trusted-oauth-providers: OAUTHKEY
+  validators: VALIDATOR
+  

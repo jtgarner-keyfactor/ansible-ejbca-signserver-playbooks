@@ -1,0 +1,78 @@
+
+# Software
+app_install_dir: /opt
+app_source_dir: /opt/media/software-dna
+
+# Looped binaries to unpack during playbook execution
+app_binaries:
+  - "{{ apache_ant }}"
+  - "{{ application_server }}"
+  - "{{ ejbca }}"
+
+# Package dependencies for multiple applications to install from upstream repository
+app_packages:
+  - unzip
+  - java-11-openjdk-devel
+  - nss-tools
+  - wget
+
+# Users
+app_users:
+  ejbca:
+    name: jboss-eap
+    group: jboss-eap
+    create_home: true
+  
+# Binaries
+apache_ant:
+  name: ant
+  version: 1.10.14
+  user: "{{ users.ejbca.name }}"
+  group: "{{ users.ejbca.group }}"
+  path: apache-ant-1.10.14
+  filename: apache-ant-1.10.14-bin.tar.gz
+  install_dir: "{{ software_install_dir }}"
+  source: "/opt/media/software-dna/Keyfactor-Ejbca/Software Files/Software Version"
+  enable_symlink: true
+
+ejbca:
+  name: ejbca
+  version: 8.2.0.3
+  user: "{{ users.ejbca.name }}"
+  group: "{{ users.ejbca.group }}"
+  path: ejbca_ee_8_2_0_3
+  filename: ejbca_ee_8_2_0_3.zip
+  install_dir: "{{ software_install_dir }}"
+  source: "/opt/media/software-dna/Keyfactor-Ejbca/Software Files/Software Version"
+  enable_symlink: true
+
+application_server:
+  name: wildfly
+  version: 26.1.3
+  user: "{{ users.ejbca.name }}"
+  group: "{{ users.ejbca.group }}"
+  path: wildfly-26.1.3.Final
+  filename: wildfly-26.1.3.Final.zip
+  install_dir: "{{ software_install_dir }}"
+  source: /opt/media/software-dna/JBoss
+  enable_symlink: true
+
+database:
+  name: mariadb
+  version: 10.5.0
+  user: "{{ users.ejbca.name }}"
+  group: "{{ users.ejbca.group }}"
+  driver:
+    version: 2.7.0
+    path: mariadb-java-client.jar
+    filename: mariadb-java-client-2.7.0.jar
+    source: "/opt/media/software-dna/Keyfactor-Ejbca/Software Files/Software Version"
+  dependencies:
+    - mariadb
+    - mariadb-backup
+    - mariadb-common
+    - mariadb-server
+    - mariadb-server-galera
+    - python3-PyMySQL
+
+
