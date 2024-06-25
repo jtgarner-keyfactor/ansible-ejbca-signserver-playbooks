@@ -1,9 +1,9 @@
 ---
 
-- name: Gather directory filepaths in {{ app_root_dir }}
+- name: Gather directory filepaths in {{ kf_software_root_dir }}
   changed_when: true
   ansible.builtin.find:
-    paths: "{{ app_root_dir }}"
+    paths: "{{ kf_software_root_dir }}"
     file_type: directory
     recurse: true
   register: existing_apps_search
@@ -18,15 +18,15 @@
   ansible.builtin.package:
     name: "{{ item }}"
     state: present
-  loop: "{{ required_packages }}"
+  loop: "{{ kf_software_common_pkgs }}"
   loop_control:
     label: "{{ item }}"
 
-- name: Install software when it doesnt exist in {{ app_root_dir }}
+- name: Install software when it doesnt exist in {{ kf_software_root_dir }}
   when: 
     - item.path is defined
     - existing_apps_search.files|map(attribute='path') is not search(item.home)
-  loop: "{{ software }}"
+  loop: "{{ kf_software_binaries }}"
   loop_control:
     label: "{{ item.name }}"
   ansible.builtin.include_tasks:

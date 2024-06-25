@@ -19,7 +19,7 @@
 - name: Unarchive '{{ item.name }}' binary
   ansible.builtin.unarchive:
     src: "{{ item.source_dir }}/{{ item.filename }}"
-    dest: "{{ app_root_dir }}"
+    dest: "{{ kf_software_root_dir }}"
     owner: "{{ item.user|default('root') }}"
     group: "{{ item.group|default('root') }}"
     remote_src: true
