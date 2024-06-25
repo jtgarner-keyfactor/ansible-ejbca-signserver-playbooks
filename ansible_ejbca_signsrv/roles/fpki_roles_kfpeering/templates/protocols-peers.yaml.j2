@@ -1,0 +1,27 @@
+{# inventory hostname membership determines if boolean is changed to true #}
+
+Object Type: Available Protocols
+Version: 1
+Name: available-protocol-configuration
+ACME: {{ inventory_hostname in groups['registration_authority'] | default(false) | lower }}
+Certstore: {{ inventory_hostname in groups['validation_authority'] | default(false) | lower }}
+CMP: false
+CRLstore: {{ inventory_hostname in groups['validation_authority'] | default(false) | lower }}
+EST: false
+MSAE: false
+OCSP: {{ inventory_hostname in groups['validation_authority'] | default(false) | lower }}
+SCEP: false
+RA Web: {{ inventory_hostname in groups['registration_authority'] | default(false) | lower }}
+REST CA Management: false
+REST Certificate Management: false
+REST Coap Management: false
+REST Crypto Token Management: false
+REST End Entity Management: false
+REST End Entity Management V2: false
+REST Configdump: false
+REST Certificate Management V2: false
+REST SSH V1: false
+Webdist: {{ inventory_hostname in groups['validation_authority'] | default(false) | lower }}
+Web Service: false
+ITS Certificate Management: false
+Custom header name for REST calls from browser: X-Keyfactor-Requested-With

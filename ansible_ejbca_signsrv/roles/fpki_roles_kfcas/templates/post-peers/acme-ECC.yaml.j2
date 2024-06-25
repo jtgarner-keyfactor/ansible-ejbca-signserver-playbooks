@@ -1,0 +1,33 @@
+Object Type: ACME Configuration
+Version: 1
+Name: ecc
+RA Name Generation Scheme: RANDOM
+RA Name Generation Params: CN
+RA Name Generation Prefix: ''
+RA Name Generation Postfix: ''
+End Entity Profile: PublicTrust90DayTLSECC
+Pre-Authorization Allowed: false
+Wildcard Certificate Issuance Allowed: false
+Wildcard Certificate Issuance for http-01 Challenge Allowed: false
+DNS Identifier Challenge Types: http-01,tls-alpn-01
+Terms of service require new approval: true
+Agree to new Terms of service allowed: true
+Site URL: https://www.example.com/
+Terms of Service URL: https://example.com/acme/terms
+Terms of Service Change URL: https://example.com/acme/termsChanged
+DNS Resolver: 192.168.114.10
+DNS Port: 53
+DNSSEC Trust Anchor: |-
+  . IN DS 19036 8 2 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5
+  . IN DS 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D
+Validate DNSSEC: false
+Require Client Authentication: false
+Require External Account Binding: false
+Order Validity: 3600000
+External Account Binding: [
+  ]
+Retry After: 0
+Authorized Redirect Ports: 22,25,80,443
+Approval Profile for newAccount: -1
+Approval Profile for keyChange: -1
+Preferred Root CA subjectDn: default

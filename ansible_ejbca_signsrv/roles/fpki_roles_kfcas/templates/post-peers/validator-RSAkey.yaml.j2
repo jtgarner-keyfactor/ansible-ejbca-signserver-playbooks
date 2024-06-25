@@ -1,0 +1,20 @@
+Object Type: Validator
+Version: 1
+Type: RSA_KEY_VALIDATOR
+Name: RSA Key Validator
+Description: ''
+If Validation Fails: ABORT_CERTIFICATE_ISSUANCE
+If Validator Not Applicable: ABORT_CERTIFICATE_ISSUANCE
+Issuance Phase: DATA_VALIDATION
+Apply for Certificate Profiles:
+- PublicTrust90DayRSAServerClientAuthProfile
+Key Validator Settings Template: USE_CERTIFICATE_PROFILE_SETTINGS
+Bit Lengths:
+- ''
+Odd Public Key Exponent Only: false
+Odd Public Key Modulus Only: false
+Do Not Allow Power of Prime Modulus: false
+Do Not Allow ROCA Weak Keys: true
+Public Key Modulus Smallest Factor: null
+Public Key Modulus Minimum: null
+Public Key Modulus Maximum: null

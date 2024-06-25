@@ -1,0 +1,152 @@
+Object Type: Certificate Profile
+Version: 1
+Name: PublicTrust90DayECCServerClientAuthProfile
+Type: End Entity
+Available Key Algorithms:
+- ECDSA
+Available Elliptic Curves:
+- P-256
+- P-384
+- P-521
+Available Bit Lengths:
+- 2048
+- 3072
+- 4096
+Available Security Levels:
+- 128
+- 192
+- 256
+Signature Algorithm: SHA256WithRSA
+Validity: 3mo
+Certificate Validity Offset Used: false
+Expiration Restriction for Weekdays Used: false
+Description: ''
+Allow Backdated Revocation: false
+Allow Certificate Serial Number Override: false
+Allow Subject DN Override by CSR: false
+Allow Subject DN Override by End Entity Information: false
+Allow Extension Override: false
+Overridable Extension OIDs: [
+  ]
+Non-overridable Extension OIDs: [
+  ]
+Allow Key Usage Override: false
+Allow Validity Override: false
+Use Certificate Storage: true
+Store Certificate Data: true
+Basic Constraints Used: false
+Basic Constraints Critical: true
+Path Length Constraint Used: false
+Subject Key Identifier Used: true
+Subject Key Identifier Critical: false
+Truncated Subject Key Identifier Used: false
+Authority Key Identifier Used: true
+Authority Key Identifier Critical: false
+Key Usage Used: true
+Key Usage Critical: true
+Forbid encryption usage for ECC keys: false
+Key Usage:
+- Digital Signature
+- Key Agreement
+Extended Key Usage Used: true
+Extended Key Usage Critical: false
+Extended Key Usage:
+- Client Authentication
+- Server Authentication
+Certificate Policies Used: true
+Certificate Policies Critical: false
+Certificate Policies:
+- Policy ID: 2.23.140.1.2.1
+  Qualifier ID: ''
+  Qualifier: ''
+- Policy ID: 2.16.840.1.101.3.2.1.3.43
+  Qualifier ID: ''
+  Qualifier: ''
+Subject Alternative Name Used: true
+Subject Alternative Name Critical: false
+Subject Alternative Name Searchable: true
+Issuer Alternative Name Used: false
+Issuer Alternative Name Critical: false
+Subject Directory Attributes Used: false
+Name Constraints Used: false
+Name Constraints Critical: false
+CRL Distribution Point Used: true
+CRL Distribution Point Critical: false
+CRL Use CA Defined Settings: true
+Freshest CRL Used: false
+Authority Information Access Used: true
+OCSP Service Locator URL Is CA Defined: true
+OCSP Issuer URL Is CA Defined: true
+Private Key Usage Period Start Offset Used: false
+Private Key Usage Period Length Used: false
+QC Statement Used: false
+QC Statement Critical: false
+QC PKIX QCSyntax-v2: false
+QC Semantics Identifier: ''
+QC RA Name: ''
+QC ETSI Qualified Certificate Compliance: false
+QC ETSI Qualified Signature Creation Device: false
+QC ETSI Value Limit Used: false
+QC ETSI Value Limit Currency: ''
+QC ETSI Value Limit: 0
+QC ETSI Value Limit Exponent: 0
+QC ETSI Retention Period Used: false
+QC ETSI Retention Period Years: 0
+QC ETSI Type: null
+QC ETSI Policy Disclosure Statement: [
+  ]
+ETSI QC Legislation Countries: false
+Countries List: ''
+QC Custom String Used: false
+QC Custom String OID: ''
+QC Custom String Text: ''
+PSD2 QC Statement Used: false
+CT in New Certificates Enabled: false
+CT in OCSP Enabled: false
+CT in Publishers Enabled: false
+CT Submit Existing: true
+OCSP No Check: false
+Microsoft Template Used: false
+Microsoft ObjectSid Security Extension Used: false
+Card Number Used: false
+CA Browser Forum Organization Identifier Used: false
+Certificate Extensions: [
+  ]
+Document Type List Used: false
+Document Type List Critical: false
+Document Type List: [
+  ]
+CVC Terminal Type: Inspection System
+CVC Access Rights (Inspection System):
+- DG3
+- DG4
+Approval Settings: {
+  }
+LDAP DN Order: false
+Custom DN Order Used: false
+Custom DN Order - Apply LDAP DN Order Setting: false
+Custom DN Order: [
+  ]
+CN Postfix Used: false
+CN Postfix: ''
+Subject DN Subset Used: false
+Subject Alternative Name Subset Used: false
+Available CAs:
+- {{ kf_cas_sub.name }}
+Publishers:
+{% for pub in groups['validation_authorities'] %}
+- {{ pub }}Publisher
+{% endfor %}
+Single Active Certificate Constraint: false
+Allow External SSH Extensions: false
+Ssh Certificate Type: User
+SSH Extensions:
+  no-touch-required: ''
+  permit-X11-forwarding: ''
+  permit-agent-forwarding: ''
+  permit-port-forwarding: ''
+  permit-pty: ''
+  permit-user-rc: ''
+Require External SSH Extensions Defined: false
+Account Binding Namespace: [
+  ]

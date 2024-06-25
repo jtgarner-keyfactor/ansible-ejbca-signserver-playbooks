@@ -1,0 +1,92 @@
+---
+
+- name: Create directory for holding certificates
+  register: create_certs_dir
+  ansible.builtin.file:
+    path: "{{ kf_ejbca_home }}/certificates"
+    state: directory
+    owner: "{{ kf_ejbca_user}}"
+    group: "{{ kf_ejbca_group }}"
+    mode: '0750'
+
+- name: Get current CAs
+  register: current_cas
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh ca listcas
+
+- name: Export CA certificates
+  when: 
+    - inventory_hostname in groups['certificate_authorities'][0]
+  run_once: true
+  block:
+
+    - name: Split each CA into its own list
+      ansible.builtin.set_fact:
+        cas_all: "{{ current_cas.stdout.split('CA Name: ')[1:] }}"
+
+    - name: Add Active and External CA names to list, skipping CAs that dont have a certificate using expire time
+      when: 
+        - item is search('Expire time')
+        - not item is search('Jan 01 00:00:00 UTC 1970')
+      loop: "{{ cas_all }}"
+      loop_control:
+        label: "{{ item|split|first }}"
+      vars:
+        cas_to_sync: []
+      ansible.builtin.set_fact:
+        cas_to_sync: "{{ cas_to_sync + [item|split|first] }}"
+
+    - name: Export EJBCA CA certificates to local directory 
+      when: 
+        - cas_to_sync|length
+      loop: "{{ cas_to_sync }}"
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh ca getcacert
+        --caname "{{ item }}"
+        -f "{{ kf_ejbca_home }}/certificates/{{ item }}.pem"
+
+    - name: Transfer EJBCA CA certificates from first EJBCA CA host server to Ansible Controller
+      when: 
+        - cas_to_sync|length
+      loop: "{{ cas_to_sync }}"
+      delegate_to: "{{ inventory_hostname }}"
+      ansible.builtin.fetch:
+        src: "{{ kf_ejbca_home }}/certificates/{{ item }}.pem"
+        dest: "{{ kf_remote_src_dir }}/"
+        flat: true
+
+- name: Define 'cas_to_sync' list fact on all inventory hosts when 'cas_to_sync' is defined on {{ groups['certificate_authorities'][0] }}
+  when: 
+    - hostvars[groups['certificate_authorities'][0]]['cas_to_sync'] is defined
+  ansible.builtin.set_fact:
+    cas_to_sync: "{{ hostvars[groups['certificate_authorities'][0]]['cas_to_sync'] }}"
+
+- name: Transfer certs and import on Peer Servers
+  when: 
+    - inventory_hostname in groups['peer_servers']
+    - cas_to_sync|default([])|length
+  block:
+
+    - name: Transfer EJBCA CA certificates from Ansible Controller to Peer Servers
+      when: not current_cas.stdout is search(item)
+      loop: "{{ cas_to_sync }}"
+      delegate_to: "{{ inventory_hostname }}"
+      ansible.builtin.copy:
+        src: "{{ kf_remote_src_dir }}/{{ item }}.pem"
+        dest: "{{ kf_ejbca_home }}/certificates/{{ item }}.pem"
+        owner: "{{ kf_ejbca_user }}"
+        group: "{{ kf_ejbca_group }}"
+
+    - name: Import CA certificates on Peer Servers
+      when: not current_cas.stdout is search(item)
+      loop: "{{ cas_to_sync }}"
+      register: import_external_ca
+      failed_when: 
+        - import_external_ca.rc >= 1
+        - not import_external_ca is search('already exists and is not waiting for certificate response')
+        - not import_external_ca is search('The CA certificate chain is already imported')
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh ca importcacert
+        --caname {{ item }}
+        -f "{{ kf_ejbca_home }}/certificates/{{ item }}.pem"
+

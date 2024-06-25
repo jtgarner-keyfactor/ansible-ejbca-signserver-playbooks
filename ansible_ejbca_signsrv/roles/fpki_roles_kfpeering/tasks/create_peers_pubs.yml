@@ -1,0 +1,63 @@
+---
+
+- name: Create peer-connector configdump path
+  loop:
+    - peer-connectors
+    - publishers
+  ansible.builtin.file:
+    path: "{{ import_path }}/{{ item }}"
+    state: directory
+
+- name: Template Validation Authority peer connector configdump files
+  loop: "{{ groups['validation_authorities'] }}"
+  ansible.builtin.template:
+    src: peer-connector.yaml.j2
+    dest: "{{ import_path }}/peer-connectors/{{ item }}"
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+    mode: '0640'
+
+- name: Template Registration Authority configdump files
+  loop: "{{ groups['registration_authorities'] }}"
+  vars:
+    peer_ra: true
+  ansible.builtin.template:
+    src: peer-connector.yaml.j2
+    dest: "{{ import_path }}/peer-connectors/{{ item }}"
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+    mode: '0640'
+
+- name: Import peer configuration
+  register: config_import
+  become_user: "{{ kf_ejbca_user }}"
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/dist/configdump/configdump.sh import 
+    --ignore-errors 
+    --overwrite update 
+    --non-interactive continue 
+    -l "{{ import_path }}"
+
+- name: Dynamically template 'publisher' configdump files
+  loop: "{{ groups['validation_authorities'] }}"
+  ansible.builtin.template:
+    src: publisher.yaml.j2
+    dest: "{{ import_path }}/publishers/{{ item }}.yaml"
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+    mode: '0640'
+
+- name: Import publisher configuration
+  register: config_import
+  become_user: "{{ kf_ejbca_user }}"
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/dist/configdump/configdump.sh import 
+    --ignore-errors 
+    --overwrite update 
+    --non-interactive continue 
+    -l "{{ import_path }}"
+
+- name: Clean up configuration folder
+  ansible.builtin.file:
+    path: "{{ import_path }}"
+    state: absent

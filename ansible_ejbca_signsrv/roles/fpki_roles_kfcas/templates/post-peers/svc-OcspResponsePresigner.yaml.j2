@@ -1,0 +1,29 @@
+Object Type: Service
+Version: 1
+Name: {{ kf_service_presigner }}
+Worker Type: OCSP Response Presigner
+Worker Properties:
+  CAs to Check:
+  - {{ kf_cas_sub.name }}
+  Time Before Expiring: 30
+  Time Unit: MINUTES
+  CertId Hash Algorithm: SHA1
+  Include Certificates That Have Expired: false
+  Generate Responses for All Certificates: true
+  Update Expired Responses Only: false
+  Issue Final OCSP Response (eIDAS): true
+  Time Before CA Expires: 1
+  Time Unit Before CA Expires: DAYS
+Interval Type: Periodical Interval
+Interval Properties:
+  Periodical Value: 2
+  Periodical Unit: MINUTES
+Action Type: No Action
+Action Properties: {
+  }
+Description: ''
+Active: true
+Hidden: false
+Pin to Specific Nodes: [
+  ]
+Run on All Nodes: false

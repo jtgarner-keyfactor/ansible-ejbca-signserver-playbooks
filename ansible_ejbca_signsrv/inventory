@@ -4,19 +4,19 @@ all:
   children:
     certificate_authorities:
       hosts:
-        ca-host:
-          ansible_host: 107.22.132.198
+        l-tlsissuer1:
+          ansible_host: 3.89.29.154
 
     validation_authorities:
       hosts:
-        va-host:
-          ansible_host: 52.91.129.184
+        l-tlsocsp1:
+          ansible_host: 54.196.237.49
           
     registration_authorities:
       hosts:
-        # ra-host:
-        #   ansible_host: 54.82.38.202
-
+        l-tlsra1:
+          ansible_host: 34.207.252.245
+        
     ejbca_servers:
       children:
         certificate_authorities:

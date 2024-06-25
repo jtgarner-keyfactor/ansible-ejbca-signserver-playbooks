@@ -6,7 +6,7 @@
     {{ kf_ejbca_home }}/bin/ejbca.sh keybind list
 
 - name: Create dict with existing keybinding properties
-  when: kf_keybind.peering.name in line
+  when: item.name in line
   loop: "{{ listkeybindings.stdout_lines }}"
   loop_control:
     loop_var: line
@@ -15,7 +15,7 @@
   vars:
     active: "{% if 'ACTIVE' in line %}true{% else %}false{% endif %}"
   ansible.builtin.set_fact:
-    keybind_dict: {'name': "{{ kf_keybind.peering.name }}", 'active': "{{ active|bool }}"}
+    keybind_dict: {'name': "{{ item.name }}", 'active': "{{ active|bool }}"}
 
 - name: Create Key Binding
   when: keybind_dict is undefined 
@@ -64,7 +64,7 @@
       when: not cert_check.stat.exists
       block:
 
-        - name: Create CSR folders
+        - name: Create certificate and csr folders
           loop:
             - "{{ kf_ejbca_home }}/certificates"
             - "{{ kf_ejbca_home }}/csr"
@@ -73,8 +73,8 @@
           ansible.builtin.file:
             path: "{{ dir }}"
             state: directory
-            owner: "{{ kf_ejbca_user.name }}"
-            group: "{{ kf_ejbca_user.group }}"
+            owner: "{{ kf_ejbca_user }}"
+            group: "{{ kf_ejbca_group }}"
             mode: '0770'
 
         - name: Generate CSR for {{ item.name }}

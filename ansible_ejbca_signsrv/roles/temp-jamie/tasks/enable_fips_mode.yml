@@ -1,0 +1,17 @@
+---
+
+- name: Enable FIPS mode
+  ansible.builtin.command: fips-mode-setup --enable
+
+- name: Reboot server for FIPS mode
+  ansible.builtin.reboot:
+    reboot_timeout: 1800
+
+- name: Verify FIPS mode is enabled
+  ansible.builtin.command: fips-mode-setup --check
+  register: fips_mode_status
+
+- name: Fail if enabling FIPS mode isnt enabled
+  ansible.builtin.fail:
+    msg: FIPS mode was not successfully enabled
+  when: fips_mode_status.stdout is search('FIPS mode is disabled')

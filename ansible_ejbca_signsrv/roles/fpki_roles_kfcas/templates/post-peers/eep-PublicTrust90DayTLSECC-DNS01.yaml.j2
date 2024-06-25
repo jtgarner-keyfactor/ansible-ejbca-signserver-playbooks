@@ -1,0 +1,156 @@
+Object Type: End Entity Profile
+Version: 1
+Name: PublicTrust90DayTLSECC-DNS01
+Type: Default
+Username Auto-Generated: false
+Username Default Value: ''
+Username Required: true
+Username Regex Validation: ''
+Username Regex Validation Used: false
+Password Auto-Generated: false
+Password Default: ''
+Password Required: true
+Password Modifiable: true
+Minimum Password Strength: 0
+Type of Auto-Generated Password: English Letters and Digits
+Auto-Generated Password Length: 8
+Cleartext Password Enabled: true
+Cleartext Password Default: false
+Cleartext Password Required: false
+E-Mail Used: true
+E-Mail Required: false
+E-Mail Modifiable: true
+E-Mail Domain: [
+  ]
+Allowed Requests Used: false
+Max Failed Logins Enabled: false
+Max Failed Logins Modifiable: true
+Max Failed Logins Value: Unlimited
+Renewal Before Expiraton Allowed: false
+Description: ''
+Default CA: {{ kf_cas_sub.name }}
+Available CAs:
+- {{ kf_cas_sub.name }}
+Default Certificate Profile: PublicTrust90DayECCServerClientAuthProfile
+Available Certificate Profiles:
+- PublicTrust90DayECCServerClientAuthProfile
+Default Token Type: User Generated
+Available Token Types:
+- User Generated
+Allow Merge DN: false
+Redact PII: false
+Card Number Used: false
+Card Number Required: false
+Custom Serial Number: false
+Issuance Revocation Reason Used: false
+Issuance Revocation Reason Modifiable: true
+Issuance Revocation Reason Default: NOT_REVOKED
+Name Constraints Permitted Used: false
+Name Constraints Permitted Required: false
+Name Constraints Excluded Used: false
+Name Constraints Excluded Required: false
+CA Browser Forum Organization Identifier Used: false
+CA Browser Forum Organization Identifier Required: false
+CA Browser Forum Organization Identifier Modifiable: true
+CA Browser Forum Organization Identifier: ''
+Printing Enabled: false
+Printing Default: false
+Printing Required: false
+Printed Copies: 1
+Printer Name: ''
+Printer SVG File Name: ''
+Printer SVG Data: null
+Reverse Field Checks: false
+Validity Start Time Used: false
+Validity Start Time Modifiable: true
+Validity Start Time: null
+Validity End Time Used: false
+Validity End Time Modifiable: true
+Validity End Time: null
+Use Extension Data: false
+ETSI PSD2 QC Statement: false
+Allow multi-value RDNs: false
+Key Recovery Used: false
+Key Recovery Default: false
+Key Recovery Required: false
+Reuse Key-Recovered Certificate: false
+Notifications Used: false
+Notifications Default: false
+Notifications Required: false
+Notifications: [
+  ]
+Subject DN:
+  CN:
+  - Required: true
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  C:
+  - Required: true
+    Modifiable: false
+    Values:
+    - US
+Subject Alternative Name:
+  DNSNAME:
+  - Required: true
+    Modifiable: false
+    Copy: true
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$
+  - Required: false
+    Validation:
+      Regex: ^([a-zA-Z0-9\*\.-]+)?(\.gov||\.mil)$

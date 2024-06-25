@@ -15,7 +15,7 @@
     mode: '0755'
     
 - name: Template configuration files
-  loop: "{{ kf_https_config.conf|dict2items }}"
+  loop: "{{ kf_httpd_config.conf|dict2items }}"
   loop_control:
     label: "{{ item.key }}"
   ansible.builtin.template:
@@ -34,8 +34,8 @@
     mode: '0600'
 
 - name: Copy modules
-  notify: Restart httpd
-  loop: "{{ kf_https_config.modules }}"
+  #notify: Restart httpd
+  loop: "{{ kf_httpd_config.modules }}"
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "/etc/httpd/conf.modules.d/{{ item }}"
@@ -59,7 +59,7 @@
     state: enabled
 
 - name: Transfer TLS certificates from Ansible Controller to EJBCA server Apache directories
-  loop: "{{ kf_https_config.tls|dict2items }}"
+  loop: "{{ kf_httpd_config.tls|dict2items }}"
   loop_control:
     label: "{{ item.value.file }}"
   ansible.builtin.copy:

@@ -1,0 +1,9 @@
+---
+
+- name: Add VA Publishers to {{ kf_service_publisher_queue }}
+  register: update_service
+  loop: "{{ groups['validation_authorties']}}"
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/bin/ejbca.sh service edit
+    --service "{{ kf_service_publisher_queue }}"
+    --properties worker.publishertocheck={{ kf_sub_id|int }}

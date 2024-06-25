@@ -1,0 +1,19 @@
+Object Type: Role
+Version: 1
+Name: Super Administrator Role
+Role Members:
+- Token Type: CertificateAuthenticationToken
+  Issuer: {{ kf_cas_mgmt.name }}
+  Match With: WITH_COMMONNAME
+  Match Value: {{ kf_superadmins.initial.cn }}
+  Description: Initial super administrator
+Namespace: ''
+RA Style Id: 0
+Access Rules:
+  /: Allow
+  /protocol/cmp/: Allow
+  /protocol/est/: Allow
+  /protocol/web_services/: Allow
+  /protocol/acme/: Allow
+  /protocol/rest/: Allow
+  /protocol/scep/: Allow

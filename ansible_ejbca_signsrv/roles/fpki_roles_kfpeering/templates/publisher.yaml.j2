@@ -1,0 +1,20 @@
+Object Type: Publisher
+Version: 2
+Name: {{ item }}Publisher
+Type: Validation Authority Peer Publisher
+Settings:
+  Peer System: {{ item }}_PeerConnector
+  Don't Store Certificate Meta Data Except for CA and OCSP Signing Certificates: 'false'
+  Store Ocsp responses at the Validation Authority: 'true'
+  Store Certificate at the Validation Authority: 'true'
+  Ignore Newer Entries at Peer: 'false'
+  Store CRL at the Validation Authority: 'true'
+  Publish Only Revoked Certificates: 'false'
+  Include Database Integrity Information: 'false'
+Only Use in Queue: false
+Use Safe Direct Publishing: true
+Keep Published in Queue: false
+Use Queue for CRLs: true
+Use Queue for Certificates: true
+Use Queue for OCSP Responses: true
+Description: ''

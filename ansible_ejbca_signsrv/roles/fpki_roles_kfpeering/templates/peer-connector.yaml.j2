@@ -1,0 +1,9 @@
+Object Type: Peer Connector
+Version: 1
+Name: {{ item }}_PeerConnector
+Peer Enabled: true
+URL: https://{{ item }}.{{ kf_server_domain }}/ejbca/peer/v1
+Long Hanging Connections Enabled: {{ peer_ra|default(false)|lower }}
+Min Long Hanging Connections: 2
+Max Long Hanging Connections: 2
+Authentication Key Binding: {{ kf_peering_remote_auth.name }}

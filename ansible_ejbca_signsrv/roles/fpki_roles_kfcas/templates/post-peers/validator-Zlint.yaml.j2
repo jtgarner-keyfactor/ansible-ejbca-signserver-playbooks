@@ -1,0 +1,17 @@
+Object Type: Validator
+Version: 1
+Type: EXTERNAL_CERTIFICATE_VALIDATOR
+Name: ZLint
+Description: ''
+If Validation Fails: ABORT_CERTIFICATE_ISSUANCE
+If Validator Not Applicable: ABORT_CERTIFICATE_ISSUANCE
+Issuance Phase: PRE_CERTIFICATE_VALIDATION
+Apply for All Certificate Profiles: false
+Apply for Certificate Profiles:
+- PublicTrust90DayECCServerClientAuthProfile
+- PublicTrust90DayRSAServerClientAuthProfile
+Fail on Script Error Code: true
+Fail on Output to Standard Error: true
+Log Standard Error: true
+Log Standard Out: true
+External Command: /opt/validators/zlint.sh

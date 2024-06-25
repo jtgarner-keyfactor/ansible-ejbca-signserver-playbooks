@@ -13,9 +13,19 @@
     mode: '0770'
 
 - name: Import Root CA Certificate
+  when: 
+    - not current_cas.stdout is search(kf_cas_root)
   include_tasks: import_root_ca.yml
 
-- name: Get current CAs
+- name: Import Initial Certificate Authorities and Configuration
+  vars:
+    config_src: initial
+    config_dict: "{{ configdump_files.initial }}"
+    import_path: "{{ kf_ejbca_home }}/initial-config"
+  ansible.builtin.include_tasks:
+    file: import_config_dump.yml
+
+- name: Update current CAs
   register: current_cas
   ansible.builtin.command: >
     {{ kf_ejbca_home }}/bin/ejbca.sh ca listcas

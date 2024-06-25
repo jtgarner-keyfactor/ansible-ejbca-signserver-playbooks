@@ -28,6 +28,7 @@ kf_group: jboss-eap
 kf_org: U.S. Government
 kf_org_unit: fpki-lab
 kf_dn: "OU={{ kf_org_unit }},O={{ kf_org }},C=US"
+kf_server_domain: inf.fpki-lab.gov
 
 # controller directory for transfering files
 kf_remote_src_dir: "{{ playbook_dir }}/transfer"
@@ -138,7 +139,7 @@ kf_db_reference: dbPassword
 # HTTPD
 kf_httpd_firewall_services: 
   - https
-kf_https_config:
+kf_httpd_config:
   tls:
     public: 
       file: "{{ ansible_fqdn }}.pem"
@@ -234,58 +235,6 @@ kf_properties_database_use_separate_certificate_table: true
 kf_properties_ejbca_cli_default_username: ejbca
 kf_properties_ejbca_cli_default_password: "{{ kf_vault_cli_defaultpassword|default('ejbca') }}"
 
-# Configdump
-kf_configdump:
-  stage_one:
-    base: "{{ kf_ejbca_home }}/stage_one"
-    dirs:
-      certification-authorities:
-        - ca-MgmtCA.yaml.j2
-        - ca-SubCA.yaml.j2
-      certificate-profiles:
-        - cp-AdminEndEntity.yaml.j2
-        - cp-MgmtCa.yaml.j2
-        - cp-MgmtPeerClient.yaml.j2
-        - cp-PeerClient.yaml.j2
-        - cp-SubCaPeerClient.yaml.j2
-        - cp-TlsServer.yaml.j2
-      end-entity-profiles:
-        - eep-AdminEndEntity.yaml.j2
-        - eep-MgmtPeerClient.yaml.j2
-        - eep-PeerClient.yaml.j2
-        - eep-SubCaPeerClient.yaml.j2
-        - eep-TlsServer.yaml.j2
-      ocsp-configuration:
-        - ocsp-Configuration.yaml.j2
-      services:
-        - svc-CrlUpdater.yaml.j2
-        - svc-HsmKeepAlive.yaml.j2
-      admin-roles:
-        - role-RaPeer.yaml.j2
-  ocsp_config_ca:
-    base: "{{ kf_ejbca_home }}/ocspconfig"
-    dirs:
-      services:
-        - svc-OcspResponsePresigner.yaml.j2
-      ocsp-configuration:
-        - ocsp-Configuration.yaml.j2
-  config_va:
-    base: "{{ kf_ejbca_home }}/configva"
-    dirs:
-      ocsp-configuration:
-        - ocsp-Configuration.yaml.j2
-      admin-roles:
-        - role-CaPeer.yaml.j2
-      available-protocols:
-        - protocols-repeater.yaml.j2
-  config_ra:
-    base: "{{ kf_ejbca_home }}/configra"
-    dirs:
-      admin-roles:
-        - role-CaPeer.yaml.j2
-      available-protocols:
-        - protocols-ra.yaml.j2
-
 # peering
 kf_peering_ca_role: CA-Peers
 kf_peering_ra_role: RA-Peers
@@ -302,18 +251,87 @@ kf_peering_remote_auth:
   sigalg: SHA384withRSA
 
 # ejbca administrators
-kf_superadmin:
-  cn: Superman-{{ ansible_hostname }}
-  dn: CN=Superman-{{ ansible_hostname }},OU={{ kf_org_unit }},O={{ kf_org }},C=US
-  password: "{{ kf_vault_superadminpassword|default('foo123') }}"
-  role: Super Administrator Role
-  caname: "{{ kf_cas_mgmt.name }}"
-  token: P12
+kf_superadmins:
+  initial:
+    cn: Superman-Admin
+    dn: CN=Superman-Admin,OU={{ kf_org_unit }},O={{ kf_org }},C=US
+    password: "{{ kf_vault_superadminpassword|default('foo123') }}"
+    role: Super Administrator Role
+    caname: "{{ kf_cas_mgmt.name }}"
+    token: P12
 
 # services
-kf_service_presigner:
-  name: OcspResponsePresigner
-  time_before: 30
-  time_unit: MINUTES
-  periodical_value: 2
-  periodical_unit: MINUTES
+kf_service_presigner: OcspResponsePresigner
+kf_service_publisher_queue: PublisherQueue
+
+# acme
+kf_acme_aliases:
+  ecc:
+    eeprofile: PublicTrust90DayTLSECC
+    challenge_types: http-01,tls-alpn-01
+  ecc-dns01:
+    eeprofile: PublicTrust90DayTLSECC-DNS01
+    challenge_types: dns-01
+  rsa:
+    eeprofile: PublicTrust90DayTLSRSA
+    challenge_types: http-01,tls-alpn-01
+  rsa-dns01:
+    eeprofile: PublicTrust90DayTLSRSA-DNS01
+    challenge_types: dns-01
+
+configdump_files:
+  initial:
+    certification-authorities:
+      - ca-MgmtCA.yaml.j2
+      - ca-SubCA.yaml.j2
+    certificate-profiles:
+      - cp-AdminEndEntity.yaml.j2
+      - cp-MgmtCa.yaml.j2
+      - cp-MgmtPeerClient.yaml.j2
+      - cp-PeerClient.yaml.j2
+      - cp-SubCaPeerClient.yaml.j2
+      - cp-TlsServer.yaml.j2
+    end-entity-profiles:
+      - eep-AdminEndEntity.yaml.j2
+      - eep-MgmtPeerClient.yaml.j2
+      - eep-PeerClient.yaml.j2
+      - eep-SubCaPeerClient.yaml.j2
+      - eep-TlsServer.yaml.j2
+    ocsp-configuration:
+      - ocsp-Configuration.yaml.j2
+    services:
+      - svc-CrlUpdater.yaml.j2
+      - svc-HsmKeepAlive.yaml.j2
+    admin-roles:
+      - role-RaPeer.yaml.j2
+
+  post_peers:
+    # acme-config:
+    #   - acme-ECC.yaml.j2
+    #   - acme-ECCdns01.yaml.j2
+    #   - acme-RSA.yaml.j2
+    #   - acme-RSAdns01.yaml.j2
+    #   - global-acme-configuration.yaml.j2
+    # certificate-profiles:
+    #   - cp-PublicTrust90DayECCServerClientAuthProfile.yaml.j2
+    #   - cp-PublicTrust90DayRSAServerClientAuthProfile.yaml.j2
+    # end-entity-profiles:
+    #   - eep-PublicTrust90DayTLSECC-DNS01.yaml.j2
+    #   - eep-PublicTrust90DayTLSECC.yaml.j2
+    #   - eep-PublicTrust90DayTLSRSA-DNS01.yaml.j2
+    #   - eep-PublicTrust90DayTLSRSA.yaml.j2
+    # services:
+    #   - svc-PublishQueueProcess.yaml.j2
+    #   - svc-OcspResponsePresigner.yaml.j2
+    validators:
+      # - validator-CAA.yaml.j2
+      # - validator-Domain.yaml.j2
+      # - validator-ECCkey.yaml.j2
+      # - validator-RSAkey.yaml.j2
+      - validator-Zlint.yaml.j2
+
+  peer_servers:
+    admin-roles:
+      - role-CaPeer.yaml.j2
+    available-protocols:
+      - protocols-peers.yaml.j2

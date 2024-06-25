@@ -1,0 +1,45 @@
+---
+
+- name: Create 'base_path' configdump path
+  ansible.builtin.file:
+    path: "{{ import_path }}"
+    state: directory
+
+- name: Create sub directories
+  loop: "{{ config_dict.keys() }}"
+  ansible.builtin.file:
+    path: "{{ import_path }}/{{ item }}"
+    state: directory
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+    mode: '0750'
+
+- name: Template static config files
+  loop: "{{ config_dict|dict2items|subelements('value') }}"
+  loop_control:
+    label: "{{ item[1] }}"
+  ansible.builtin.template:
+    src: "{{ config_src | default('') }}/{{ item[1] }}"
+    dest: "{{ import_path }}/{{ item[0].key }}/{{ item[1] | regex_replace('.j2$', '') }}"
+    owner: "{{ kf_ejbca_user }}"
+    group: "{{ kf_ejbca_group }}"
+    mode: '0640'
+
+- name: Import staged configuration
+  register: config_import
+  become_user: "{{ kf_ejbca_user }}"
+  ansible.builtin.command: >
+    {{ kf_ejbca_home }}/dist/configdump/configdump.sh import 
+    --ignore-errors 
+    --overwrite update 
+    --non-interactive continue 
+    {% if initialize|default(true) %}
+    --initialize
+    {% endif %}
+    -l "{{ import_path }}"
+
+- name: Clean up configuration folder
+  ansible.builtin.file:
+    path: "{{ import_path }}"
+    state: absent
+

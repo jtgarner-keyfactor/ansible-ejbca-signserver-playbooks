@@ -61,7 +61,13 @@
 
   tasks:
 
+    - name: Get current CAs
+      register: listcas_output
+      ansible.builtin.command: >
+        {{ kf_ejbca_home }}/bin/ejbca.sh ca listcas
+
     - name: Create CA Crypto Tokens and Keys using 'ca_keys' dict as include 'key_objects' variable
+      when: not current_cas.stdout is search(item.name)
       loop:
         - "{{ kf_cas_mgmt }}"
         - "{{ kf_cas_sub }}"
@@ -73,18 +79,12 @@
         name: fpki_roles_kfoperations
         tasks_from: create_crypto_tokens.yml
 
-    - name: Create Certificate Authorities and import initial EJBCA configuration
-      vars:
-        configdump_dict: "{{ kf_configdump.stage_one }}"
-      ansible.builtin.include_role:
-        name: fpki_roles_kfconfigdump
-
-    - name: Verify Certifiate Authorities
+    - name: Create Certifiate Authorities
       ansible.builtin.include_role:
         name: fpki_roles_kfcas
 
     - name: Convert 'kf_superadmin' dict to list and create Super Administrator end entity and certificate
-      loop: ["{{ kf_superadmin }}"]
+      loop: ["{{ kf_superadmins.initial }}"]
       loop_control:
         label: "{{ item.cn }}"
       ansible.builtin.include_role:
@@ -94,7 +94,7 @@
           become_user: "{{ kf_ejbca_user }}"
 
     - name: Convert 'kf_superadmin' dict to list and add Super Administrator to role
-      loop: ["{{ kf_superadmin }}"]
+      loop: ["{{ kf_superadmins.initial }}"]
       loop_control:
         label: "{{ item.cn }}"
       ansible.builtin.include_role:
@@ -105,15 +105,21 @@
 
     - name: Transfer Super Administrator keystore to Ansible Controller
       ansible.builtin.fetch:
-        src: "/opt/ejbca-custom/p12/{{ kf_superadmin.cn }}.p12"
+        src: "/opt/ejbca-custom/p12/{{ kf_superadmins.initial.cn }}.p12"
         dest: "{{ kf_remote_src_dir }}/"
         flat: true
 
   tags: create-cas
 
-- name: Configure Apache 
+- name: Configure Apache and Super Administrator
   become: true
   hosts: ejbca_servers
+  pre_tasks: 
+
+    - name: Include variables role
+      ansible.builtin.import_role:
+        name: fpki_roles_kfvariables
+
   tasks:
 
     - name: Configure Apache TLS

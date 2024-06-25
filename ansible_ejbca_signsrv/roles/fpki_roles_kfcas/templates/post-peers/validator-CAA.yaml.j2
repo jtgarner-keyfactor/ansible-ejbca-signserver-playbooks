@@ -1,0 +1,30 @@
+Object Type: Validator
+Version: 1
+Type: CAA_VALIDATOR
+Name: CAA Validator
+Description: ''
+If Validation Fails: ABORT_CERTIFICATE_ISSUANCE
+If Validator Not Applicable: LOG_INFO
+Issuance Phase: DATA_VALIDATION
+Apply for All Certificate Profiles: false
+Apply for Certificate Profiles:
+- PublicTrust90DayECCServerClientAuthProfile
+- PublicTrust90DayRSAServerClientAuthProfile
+Issuers:
+- l-TLSISSUER1
+DNS Resolver: 192.168.114.10
+Lookup DNAMEs: true
+Validate DNSSEC: false
+DNSSEC Trust Anchor: ". IN DS 19036 8 2 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5\r\
+  \n. IN DS 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D"
+Fail on Lookup Error: false
+Top-Level Domains to Ignore: gov
+Domains to Ignore: [
+  ]
+Ignored Critical Property Tags: [
+  ]
+DNS Lookup Retry Delay: 500
+Maximum Lookup Recursions: 8
+IODEF Settings:
+  Use IODEF E-Mail: false
+  Use IODEF Web: false
