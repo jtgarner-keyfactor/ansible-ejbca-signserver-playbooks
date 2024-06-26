@@ -1,17 +1,2 @@
 ---
-# handlers file for wildfly
-
-- name: restart wildfly
-  ansible.builtin.systemd:
-    name: wildfly
-    state: restarted
-
-- name: change standalone data mode
-  ansible.builtin.file:
-    path: '{{ jboss.path }}/standalone/data'
-    owner: '{{ jboss_user }}'
-    group: '{{ jboss_group }}'
-    mode: '0750'
-    recurse: yes
-    state: directory
-  when: wildfly_manage_standalone_data
+# handlers file for jboss

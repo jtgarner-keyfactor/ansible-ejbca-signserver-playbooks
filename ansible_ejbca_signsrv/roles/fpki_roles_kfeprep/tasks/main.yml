@@ -25,19 +25,27 @@
         enabled: true
 
     - name: Create application credential store
-      include_tasks: create_credential_store.yml
+      ansible.builtin.include_tasks:
+        file: create_credential_store.yml
 
     - name: Configure EJBCA and Build EAR file
-      include_tasks: configure_ejbca.yml
+      ansible.builtin.include_tasks:
+        file: configure_ejbca.yml
 
   when: not ejbca_ear_check.stat.exists|default(false)
 
 - name: Build additional Ejbca tools
-  include_tasks: build_tools.yml
+  vars:
+    ejbca_p11ng_build: true
+    ejbca_configdump_build: true
+    ejbca_ctb_build: true
+  ansible.builtin.include_tasks:
+    file: build_tools.yml
 
 - name: Create DB Protection keys
   when: safenetclient.stat.exists
-  include_tasks: create_dbprotection_keys.yml
+  ansible.builtin.include_tasks:
+    file: create_dbprotection_keys.yml
 
 - name: Restart JBoss service to ensure all changes are applied
   ansible.builtin.systemd:

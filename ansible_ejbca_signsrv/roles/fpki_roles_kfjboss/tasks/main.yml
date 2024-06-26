@@ -16,7 +16,7 @@
 
 - name: Copy JBoss configuration file
   ansible.builtin.template:
-    src: jboss-eap.conf.j2
+    src: jboss_eap.conf.j2
     dest: /etc/default/jboss-eap.conf
     owner: root
     group: "{{ jboss_user }}"

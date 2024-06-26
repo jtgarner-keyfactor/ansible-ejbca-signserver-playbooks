@@ -13,8 +13,7 @@
     mode: '0770'
 
 - name: Import Root CA Certificate
-  when: 
-    - not current_cas.stdout is search(kf_cas_root)
+  when: not current_cas.stdout is search(kf_cas_root)
   include_tasks: import_root_ca.yml
 
 - name: Import Initial Certificate Authorities and Configuration
@@ -31,8 +30,7 @@
     {{ kf_ejbca_home }}/bin/ejbca.sh ca listcas
 
 - name: Fail if any of the Certificate Authorities names do not exist in output
-  when: 
-    - not current_cas.stdout is search(item)
+  when: not current_cas.stdout is search(item)
   loop: "{{ cas }}"
   vars:
     cas:

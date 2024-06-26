@@ -11,21 +11,23 @@
     state: directory
     mode: '0770'
 
-- name: Extract list of inventory hostname because {{ groups['certificate_authorities'][0] }} will be the only available hostvars 
+- name: Extract list of inventory hostname from each host so the are available on {{ groups['certificate_authorities'][0] }}
+  run_once: true
   ansible.builtin.set_fact:
     ansible_host_fqdns: "{{ ansible_play_hosts|map('extract',hostvars,'ansible_fqdn') }}"
-  run_once: true
 
-- name: Create, or reissue ACTIVE, TLS certificates for each host in 'ansible_host_fqdns' on first {{ groups['certificate_authorities'][0] }}
+- name: Create, or reissue ACTIVE, TLS certificates for each host in 'ansible_host_fqdns' on {{ groups['certificate_authorities'][0] }}
   when: inventory_hostname in groups['certificate_authorities'][0]
   loop: "{{ ansible_host_fqdns }}"
-  vars:
-    end_entity_reset: false
-  include_tasks: create_tls_certs.yml
   run_once: true
-
+  vars:
+    end_entity_reset: true
+  ansible.builtin.include_tasks: 
+    file: create_tls_certs.yml
+  
 - name: Configure HTTPD on all EJBCA servers
-  include_tasks: configure.yml
+  nsible.builtin.include_tasks: 
+    file: configure.yml
 
 
 

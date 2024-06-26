@@ -1,21 +1,27 @@
 # Ansible role `fpki_roles_kfeprep`
 
-- Configure JBoss credentials and standalone.xml
+- Configure JBoss credential store and standalone.xml
 - Configure EJBCA properties files
-- Deploy EJBCA ear file file
+- Build EJBCA Ear file
+- Build EJBCA CLI tools
 - Create database protection key
-
-**Remarks**
-Installing EJBCA should be done through the `fpki_roles_kfsoftware` role.
 
 ## Requirements
 
-No specific requirements
+MariaDB needs to be installed with the `fpki_roles_kfsoftware` role.
 
-## Verify application server exists
+## Role Variables
+
+All role variables should be set in the `fpki_roles_kfvariables` role.
+
+## Dependencies
+
+None
+
+## Examples
+### Verify application server exists
 
 It is best to confirm application server exists prior to include JBoss tasks
-
 ```yaml
 - name: Check if application server exists
   register: found_appsrv_home
@@ -24,8 +30,7 @@ It is best to confirm application server exists prior to include JBoss tasks
     path: "{{ jboss_home }}"
 ```
 
-## Craete application credential store
-
+### Craete application credential store
 ```yaml
 - name: Check if application server exists
   register: found_appsrv_home
@@ -42,7 +47,7 @@ It is best to confirm application server exists prior to include JBoss tasks
     tasks_from: create_credentials_store.yml
 ```
 
-## Configure and Build EJBCA Ear File
+### Configure and Build EJBCA Ear File
 
 Check if EAR file has been successfully deployed before building EAR file
 
@@ -61,7 +66,7 @@ Check if EAR file has been successfully deployed before building EAR file
     tasks_from: create_credentials_store.yml    
 ```
 
-## Build EJBCA tools
+### Build EJBCA tools
 
 Available tools to deploy:
 - p11ng-cli
@@ -70,18 +75,13 @@ Available tools to deploy:
 
 ```yaml
 - name: Build p11ng-cli and configdump
-  vars:
+    vars:
     ejbca_p11ng_build: true
-    ejbca_configdump: true
-    ejbca_ctb_build: false
-  ansible.builtin.include_role:
-    name: fpki_roles_kfeprep
-    tasks_from: build_tools.yml    
+    ejbca_configdump_build: true
+    ejbca_ctb_build: true
+  ansible.builtin.include_tasks:
+    file: build_tools.yml    
 ```
-
-## Dependencies
-
-No dependencies.
 
 ## License
 
