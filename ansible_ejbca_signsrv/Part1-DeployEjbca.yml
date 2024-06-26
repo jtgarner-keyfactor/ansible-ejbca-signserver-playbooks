@@ -22,11 +22,6 @@
         name: temp-jamie
 
     - name: Install required software and packages
-      vars: 
-        software:
-          - "{{ kf_ejbca_software }}"
-          - "{{ kf_ant_software }}"
-          - "{{ jboss_software }}"
       ansible.builtin.include_role:
         name: fpki_roles_kfsoftware
 
@@ -62,11 +57,11 @@
   tasks:
 
     - name: Get current CAs
-      register: listcas_output
+      register: current_cas
       ansible.builtin.command: >
         {{ kf_ejbca_home }}/bin/ejbca.sh ca listcas
 
-    - name: Create CA Crypto Tokens and Keys using 'ca_keys' dict as include 'key_objects' variable
+    - name: Create CA Crypto Tokens and Keys
       when: not current_cas.stdout is search(item.name)
       loop:
         - "{{ kf_cas_mgmt }}"
@@ -79,7 +74,7 @@
         name: fpki_roles_kfoperations
         tasks_from: create_crypto_tokens.yml
 
-    - name: Create Certifiate Authorities
+    - name: Create Certifiate Authorities and Import initial EJBCA configuration
       ansible.builtin.include_role:
         name: fpki_roles_kfcas
 

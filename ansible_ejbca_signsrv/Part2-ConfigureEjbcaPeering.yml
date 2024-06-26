@@ -11,37 +11,37 @@
         
   tasks:
 
-    # - name: Sync CA Certificates
-    #   ansible.builtin.include_role:
-    #     name: fpki_roles_kfcas
-    #     tasks_from: sync_ca_certs.yml
+    - name: Sync CA Certificates
+      ansible.builtin.include_role:
+        name: fpki_roles_kfcas
+        tasks_from: sync_ca_certs.yml
 
-    # - name: Convert 'kf_superadmin' dict to list and add Super Administrator to role
-    #   when: inventory_hostname in groups['peer_servers']
-    #   loop: ["{{ kf_superadmins.initial }}"]
-    #   loop_control:
-    #     label: "{{ item.cn }}"
-    #   ansible.builtin.include_role:
-    #     name: fpki_roles_kfoperations
-    #     tasks_from: add_to_role.yml
-    #     apply:
-    #       become_user: "{{ kf_ejbca_user }}"
+    - name: Convert 'kf_superadmin' dict to list and add Super Administrator to role
+      when: inventory_hostname in groups['peer_servers']
+      loop: ["{{ kf_superadmins.initial }}"]
+      loop_control:
+        label: "{{ item.cn }}"
+      ansible.builtin.include_role:
+        name: fpki_roles_kfoperations
+        tasks_from: add_to_role.yml
+        apply:
+          become_user: "{{ kf_ejbca_user }}"
 
-    # - name: Create Remote Authentication key binding
-    #   when: inventory_hostname in groups['certificate_authorities'][0]
-    #   run_once: true
-    #   loop: ["{{ kf_peering_remote_auth }}"]
-    #   loop_control:
-    #     label: "{{ item.name }}"
-    #   ansible.builtin.include_role:
-    #     name: fpki_roles_kfoperations
-    #     tasks_from: create_key_binding.yml
-    #     apply:
-    #       become_user: "{{ kf_ejbca_user }}"
+    - name: Create Remote Authentication key binding
+      when: inventory_hostname in groups['certificate_authorities'][0]
+      run_once: true
+      loop: ["{{ kf_peering_remote_auth }}"]
+      loop_control:
+        label: "{{ item.name }}"
+      ansible.builtin.include_role:
+        name: fpki_roles_kfoperations
+        tasks_from: create_key_binding.yml
+        apply:
+          become_user: "{{ kf_ejbca_user }}"
 
-    # - name: Configure Peering
-    #   ansible.builtin.include_role:
-    #     name: fpki_roles_kfpeering
+    - name: Configure Peering
+      ansible.builtin.include_role:
+        name: fpki_roles_kfpeering
 
     - name: Import Post-Peering configdump configuration - ACME alias, ACME Profiles, Services, and Validators
       when: inventory_hostname in groups['certificate_authorities'][0] 
