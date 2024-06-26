@@ -3,10 +3,23 @@
 # Task logging
 hide_log_output: false
 
+# Common
+kf_user: jboss-eap
+kf_group: jboss-eap
+kf_org: U.S. Government
+kf_org_unit: fpki-lab
+kf_dn: "OU={{ kf_org_unit }},O={{ kf_org }},C=US"
+kf_server_domain: inf.fpki-lab.gov
+kf_remote_src_dir: "{{ playbook_dir }}/transfer"
+
+kf_vault_nssdb_pass: ejbca
+kf_vault_db_pass: "{{ mariadb_databases.ejbca.password }}"
+kf_db_reference: dbPassword
+
 # Software
-app_root_dir: /opt
-media_dir: /opt/media/software-dna
-required_packages:
+kf_software_root_dir: /opt
+kf_software_media_dir: /opt/media/software-dna
+kf_software_common_pkgs:
   - unzip
   - java-11-openjdk-devel
   - nss-tools
@@ -17,55 +30,17 @@ required_packages:
   - firewalld
   - ca-certificates
 
-applications: 
-  - "{{ kf_ejbca_software }}"
-  - "{{ kf_ant_software }}"
-  - "{{ jboss_software }}"
+kf_software_binaries: 
+  - "{{ kf_software_ejbca }}"
+  - "{{ kf_software_ant }}"
+  - "{{ kf_software_jboss }}"
 
-kf_user: jboss-eap
-kf_group: jboss-eap
-
-kf_org: U.S. Government
-kf_org_unit: fpki-lab
-kf_dn: "OU={{ kf_org_unit }},O={{ kf_org }},C=US"
-kf_server_domain: inf.fpki-lab.gov
-
-# controller directory for transfering files
-kf_remote_src_dir: "{{ playbook_dir }}/transfer"
-
-# hsm token
-kf_token_name: junktoken
-kf_partition_name: junkpartition 
-kf_vault_partition_passphrase: foo123
-kf_dbProtection_key_label: dbProtectionKey
-
-# MariaDB
-mariadb_root_password: "{{ vault_mariadb_root_password|default('ejbca') }}"
-mariadb_configure_swappiness: true
-mariadb_swappiness: 10
-mariadb_srv_socket: /var/lib/mysql/mysql.sock
-mariadb_databases: 
-  ejbca: 
-    name: ejbca
-    user: ejbca-usr
-    password: "{{ kf_ejbca_vault_db_pass|default('ejbca') }}"
-    priv: "ejbca.*:ALL"        
-    sql_scripts:                      
-      - create-tables-ejbca-mysql.sql
-      - create-index-ejbca.sql
-
-# EJBCA
-kf_ejbca_user: "{{ kf_user }}"
-kf_ejbca_group: "{{ kf_group }}"
-kf_ejbca_home: "{{ app_root_dir }}/ejbca"
-kf_ejbca_create_home: true
-kf_ejbca_version: ejbca_ee_8_2_0_3
-kf_ejbca_software:
+kf_software_ejbca:
   name: ejbca
   home: "{{ kf_ejbca_home }}"
-  path: "{{ app_root_dir }}/{{ kf_ejbca_version }}"
+  path: "{{ kf_software_root_dir }}/{{ kf_ejbca_version }}"
   filename: "{{ kf_ejbca_version }}.zip"
-  source_dir: "{{ media_dir }}/Keyfactor-Ejbca/Software Files/Software Version"
+  source_dir: "{{ kf_software_media_dir }}/Keyfactor-Ejbca/Software Files/Software Version"
   symlink_create: true
   dependencies:
     - mariadb
@@ -77,26 +52,53 @@ kf_ejbca_software:
   user: "{{ kf_ejbca_user }}"
   group: "{{ kf_ejbca_group }}"
 
-# Apache Ant
-kf_ant_user: root
-kf_ant_group: root
-kf_ant_home: "{{ app_root_dir }}/apache-ant"
-kf_ant_version: 1.10.14
-kf_ant_software:
+kf_software_ant:
   name: ant
   home: "{{ kf_ant_home }}"
-  path: "{{ app_root_dir }}/apache-ant-{{ kf_ant_version }}"
+  path: "{{ kf_software_root_dir }}/apache-ant-{{ kf_ant_version }}"
   filename: apache-ant-{{ kf_ant_version }}-bin.tar.gz
-  source_dir: /opt/media/software-dna/Keyfactor-Ejbca/Software Files/Software Version
+  source_dir: "{{ kf_software_media_dir }}/Keyfactor-Ejbca/Software Files/Software Version"
   symlink_create: true
   symlink: 
-    src: "{{ app_root_dir }}/apache-ant-{{ kf_ant_version }}/bin/ant"
+    src: "{{ kf_software_root_dir }}/apache-ant-{{ kf_ant_version }}/bin/ant"
     dest: /usr/bin/ant
+
+kf_software_jboss:
+  name: jboss
+  home: "{{ jboss_home }}"
+  path: "{{ kf_software_root_dir }}/jboss-eap-{{ jboss_version }}"
+  dir_mode: '0750'
+  filename: jboss-eap-7.4.0.zip
+  update_zip_file: jboss-eap-7.4.16-patch.zip
+  path_version: JBoss EAP 7.4.16.GA
+  source_dir: "{{ kf_software_media_dir }}/JBoss"
+  symlink_create: true
+  dependencies:
+    - java-11-openjdk-headless.x86_64 
+    - nss-tools
+  user: "{{ jboss_user }}"
+  group: "{{ jboss_group }}"
+
+# MariaDB
+mariadb_root_password: "{{ vault_mariadb_root_password|default('ejbca') }}"
+mariadb_configure_swappiness: true
+mariadb_swappiness: 10
+mariadb_srv_socket: /var/lib/mysql/mysql.sock
+mariadb_custom_cnf: {}
+mariadb_databases: 
+  ejbca: 
+    name: ejbca
+    user: ejbca-usr
+    password: "{{ kf_ejbca_vault_db_pass|default('ejbca') }}"
+    priv: "ejbca.*:ALL"        
+    sql_scripts:                      
+      - create-tables-ejbca-mysql.sql
+      - create-index-ejbca.sql
 
 # JBoss
 jboss_user: "{{ kf_user }}"
 jboss_group: "{{ kf_group }}"
-jboss_home: "{{ app_root_dir }}/jboss"
+jboss_home: "{{ kf_software_root_dir }}/jboss"
 jboss_name: jboss-eap-{{ jboss_version }}
 jboss_java_xms: 2048m
 jboss_java_xmx: 2048m
@@ -106,35 +108,52 @@ jboss_remove_dirs:
   - domain
   - welcome-content
 jboss_version: 7.4
-jboss_software:
-  name: jboss
-  home: "{{ jboss_home }}"
-  path: "{{ app_root_dir }}/jboss-eap-{{ jboss_version }}"
-  dir_mode: '0750'
-  filename: jboss-eap-7.4.0.zip
-  update_zip_file: jboss-eap-7.4.16-patch.zip
-  path_version: JBoss EAP 7.4.16.GA
-  source_dir: /opt/media/software-dna/JBoss
-  symlink_create: true
-  dependencies:
-    - java-11-openjdk-headless.x86_64 
-    - nss-tools
-  user: "{{ jboss_user }}"
-  group: "{{ jboss_group }}"
 
-# JDBC
-kf_jdbc_driver: mariadb-java-client.jar
-kf_jdbc_driver_source: "{{ media_dir }}/Keyfactor-Ejbca/Software Files/Software Version/mariadb-java-client-3.0.8.jar"
-
-# JBoss credential store
+# EJBCA Prep
 kf_java_home: /usr/lib/jvm/java
 kf_jboss_pass_file: /usr/local/bin/wildfly
 kf_jboss_credentialstore: FipsCredentialStore
 kf_jboss_credentialstore_path: "{{ jboss_home }}/standalone/configuration/keystore"
 kf_jboss_credentialstore_file: "{{ jboss_home }}/standalone/configuration/keystore/jboss.jceks"
-kf_vault_nssdb_pass: ejbca
-kf_vault_db_pass: "{{ mariadb_databases.ejbca.password }}"
-kf_db_reference: dbPassword
+kf_dbProtection_key_label: dbProtectionKey
+
+# cesecore.properties
+kf_properties_cesecore_allow_external_dynamic_configuration: true
+kf_properties_cesecore_password_encryption_key: "{{ kf_vault_password_encryption_key|default('') }}"
+kf_properties_cesecore_ca_serialnumberoctetsize: 20
+
+# database.properties
+kf_properties_database_jndi_name: ejbcads
+kf_properties_database_use_separate_certificate_table: true
+
+# ejbca.properties
+kf_properties_ejbca_cli_default_username: ejbca
+kf_properties_ejbca_cli_default_password: "{{ kf_vault_cli_defaultpassword|default('ejbca') }}"
+
+# HSM
+hsm_user: "{{ kf_user }}"
+hsm_group: "{{ kf_user }}"
+hsm_driver_path: /usr/lib64/libsofthsm2.so
+kf_token_name: junktoken
+kf_partition_name: junkpartition 
+kf_vault_partition_passphrase: foo123
+
+# EJBCA
+kf_ejbca_user: "{{ kf_user }}"
+kf_ejbca_group: "{{ kf_group }}"
+kf_ejbca_home: "{{ kf_software_root_dir }}/ejbca"
+kf_ejbca_create_home: true
+kf_ejbca_version: ejbca_ee_8_2_0_3
+
+# Apache Ant
+kf_ant_user: root
+kf_ant_group: root
+kf_ant_home: "{{ kf_software_root_dir }}/apache-ant"
+kf_ant_version: 1.10.14
+
+# JDBC
+kf_jdbc_driver: mariadb-java-client.jar
+kf_jdbc_driver_source: "{{ kf_software_media_dir }}/Keyfactor-Ejbca/Software Files/Software Version/mariadb-java-client-3.0.8.jar"
 
 # HTTPD
 kf_httpd_firewall_services: 
@@ -178,22 +197,13 @@ kf_httpd_config:
     - 10-h2.conf
     - 01-cgi.conf
 
-# HSM
-hsm_user: "{{ kf_user }}"
-hsm_group: "{{ kf_user }}"
-hsm_driver_path: /usr/lib64/libsofthsm2.so
-
 # Certificate Authorities
 kf_cas_policy: 2.16.840.1.101.3.2.1.48.1
-
-#kf_cas_root: f-TLSRoot1
 kf_cas_root: IT-Root-CA
 kf_cas_root_pem: "{{ kf_cas_root }}.pem"
-
 kf_cas_active:
   - "{{ kf_cas_mgmt }}"
   - "{{ kf_cas_sub }}"
-
 kf_cas_mgmt:
   name: NewManagementCA
   dn: CN=NewManagementCA,OU=PKI-Lab,O=U.S. Government,C=US
@@ -221,21 +231,7 @@ kf_cas_sub:
     certsignkey: "{{ ansible_hostname }}-l-TLSISSUER5SignKey001"
     crlsignkey: "{{ ansible_hostname }}-l-TLSISSUER5SignKey001"
 
-# Keyfactor EJBCA Properties
-# cesecore
-kf_properties_cesecore_allow_external_dynamic_configuration: true
-kf_properties_cesecore_password_encryption_key: "{{ kf_vault_password_encryption_key|default('') }}"
-kf_properties_cesecore_ca_serialnumberoctetsize: 20
-
-# database
-kf_properties_database_jndi_name: ejbcads
-kf_properties_database_use_separate_certificate_table: true
-
-# ejbca
-kf_properties_ejbca_cli_default_username: ejbca
-kf_properties_ejbca_cli_default_password: "{{ kf_vault_cli_defaultpassword|default('ejbca') }}"
-
-# peering
+# Peering
 kf_peering_ca_role: CA-Peers
 kf_peering_ra_role: RA-Peers
 kf_peering_remote_auth:
@@ -244,13 +240,13 @@ kf_peering_remote_auth:
   password: "{{ kf_vault_tmppw|default('foo123') }}"
   caname: "{{ kf_cas_mgmt.name }}"
   certprofile: MgmtPeerClient
-  eeprofile: MgmtPeerClientEEProfile
+  eeprofile: MgmtPeerClientEEProfilef
   crypto_token: "{{ kf_token_name }}"
   alias: "{{ ansible_hostname }}-PeerClientAuth"
   keyspec: 3072
   sigalg: SHA384withRSA
 
-# ejbca administrators
+# EJBCA Administrators
 kf_superadmins:
   initial:
     cn: Superman-Admin
@@ -260,25 +256,11 @@ kf_superadmins:
     caname: "{{ kf_cas_mgmt.name }}"
     token: P12
 
-# services
+# Services
 kf_service_presigner: OcspResponsePresigner
 kf_service_publisher_queue: PublisherQueue
 
-# acme
-kf_acme_aliases:
-  ecc:
-    eeprofile: PublicTrust90DayTLSECC
-    challenge_types: http-01,tls-alpn-01
-  ecc-dns01:
-    eeprofile: PublicTrust90DayTLSECC-DNS01
-    challenge_types: dns-01
-  rsa:
-    eeprofile: PublicTrust90DayTLSRSA
-    challenge_types: http-01,tls-alpn-01
-  rsa-dns01:
-    eeprofile: PublicTrust90DayTLSRSA-DNS01
-    challenge_types: dns-01
-
+# Configdump
 configdump_files:
   initial:
     certification-authorities:
@@ -306,28 +288,28 @@ configdump_files:
       - role-RaPeer.yaml.j2
 
   post_peers:
-    # acme-config:
-    #   - acme-ECC.yaml.j2
-    #   - acme-ECCdns01.yaml.j2
-    #   - acme-RSA.yaml.j2
-    #   - acme-RSAdns01.yaml.j2
-    #   - global-acme-configuration.yaml.j2
-    # certificate-profiles:
-    #   - cp-PublicTrust90DayECCServerClientAuthProfile.yaml.j2
-    #   - cp-PublicTrust90DayRSAServerClientAuthProfile.yaml.j2
-    # end-entity-profiles:
-    #   - eep-PublicTrust90DayTLSECC-DNS01.yaml.j2
-    #   - eep-PublicTrust90DayTLSECC.yaml.j2
-    #   - eep-PublicTrust90DayTLSRSA-DNS01.yaml.j2
-    #   - eep-PublicTrust90DayTLSRSA.yaml.j2
-    # services:
-    #   - svc-PublishQueueProcess.yaml.j2
-    #   - svc-OcspResponsePresigner.yaml.j2
+    acme-config:
+      - acme-ECC.yaml.j2
+      - acme-ECCdns01.yaml.j2
+      - acme-RSA.yaml.j2
+      - acme-RSAdns01.yaml.j2
+      - global-acme-configuration.yaml.j2
+    certificate-profiles:
+      - cp-PublicTrust90DayECCServerClientAuthProfile.yaml.j2
+      - cp-PublicTrust90DayRSAServerClientAuthProfile.yaml.j2
+    end-entity-profiles:
+      - eep-PublicTrust90DayTLSECC-DNS01.yaml.j2
+      - eep-PublicTrust90DayTLSECC.yaml.j2
+      - eep-PublicTrust90DayTLSRSA-DNS01.yaml.j2
+      - eep-PublicTrust90DayTLSRSA.yaml.j2
+    services:
+      - svc-PublishQueueProcess.yaml.j2
+      - svc-OcspResponsePresigner.yaml.j2
     validators:
-      # - validator-CAA.yaml.j2
-      # - validator-Domain.yaml.j2
-      # - validator-ECCkey.yaml.j2
-      # - validator-RSAkey.yaml.j2
+      - validator-CAA.yaml.j2
+      - validator-Domain.yaml.j2
+      - validator-ECCkey.yaml.j2
+      - validator-RSAkey.yaml.j2
       - validator-Zlint.yaml.j2
 
   peer_servers:

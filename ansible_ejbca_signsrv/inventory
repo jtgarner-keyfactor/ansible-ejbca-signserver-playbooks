@@ -5,17 +5,17 @@ all:
     certificate_authorities:
       hosts:
         l-tlsissuer1:
-          ansible_host: 3.89.29.154
+          ansible_host: 3.85.104.206
 
     validation_authorities:
       hosts:
         l-tlsocsp1:
-          ansible_host: 54.196.237.49
+          ansible_host: 34.207.112.161
           
     registration_authorities:
       hosts:
         l-tlsra1:
-          ansible_host: 34.207.252.245
+          ansible_host: 3.91.66.232
         
     ejbca_servers:
       children:

@@ -1,42 +1,34 @@
-fpki_roles_kfpeerconnector
-=========
+# Ansible role `fpki_roles_kfpeering`
 
-This role configures peer connections between an EJBCA instance with a CA, and an EJBCA instance that is either a VA or RA.
+- Configure global peering settings
+- Import External node configurations
+- Create peer connectors
+- Create peer publishers
 
-Requirements
-------------
+## Requirements
 
-This role assumes that at least a Subordinate CA and OCSP server have been configured.  The intent for future use is to also have an RA server configured.  The server that is the Subordinate CA must be in a group named 'certificate_authority'.
+- Certificate Authorities need to be created with the `fpki_roles_kfcas` role.
+- Apache needs to be configured with the `fpki_roles_kfhttpd` role.
 
-Role Variables
---------------
+## Role Variables
 
-All role variables should be set in the fpki_roles_kfvariables role.
+All role variables should be set in the `fpki_roles_kfvariables` role.
 
-Dependencies
-------------
+## Dependencies
 
-fpki_roles_kfocsp
+None.
 
-dependencies:
-  - role: fpki_roles_kfvariables
+## Example Playbook
+``` yaml
+  - hosts: ejbca_servers
+    roles:
+      - fpki_roles_kfpeering
+```
 
+## License
 
-Example Playbook
-----------------
+BSD
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+## Contributors
 
-    - hosts: l-tlsissuer1, l-tlsocsp1
-      roles:
-         - fpki_roles_kfpeerconnector
-
-License
--------
-
-TBD
-
-Author Information
-------------------
-
-FPKIMA
+- [Jamie Garner](https://github.com/jtgarner-keyfactor)
